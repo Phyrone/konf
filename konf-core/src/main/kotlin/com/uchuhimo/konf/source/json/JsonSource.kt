@@ -29,34 +29,56 @@ import com.uchuhimo.konf.source.ValueSourceNode
  * Source from a JSON node.
  */
 class JsonSource(
-    val node: JsonNode
+    val node: JsonNode,
 ) : Source {
     override val info: SourceInfo = SourceInfo("type" to "JSON")
 
     override val tree: TreeNode = node.toTree()
 }
 
-fun JsonNode.toTree(): TreeNode {
-    return when {
-        isNull -> NullSourceNode
-        isBoolean -> ValueSourceNode(booleanValue())
-        isNumber -> ValueSourceNode(numberValue())
-        isTextual -> ValueSourceNode(textValue())
-        isArray -> ListSourceNode(
-            mutableListOf<TreeNode>().apply {
-                elements().forEach {
-                    add(it.toTree())
-                }
-            }
-        )
-        isObject -> ContainerNode(
-            mutableMapOf<String, TreeNode>().apply {
-                for ((key, value) in fields()) {
-                    put(key, value.toTree())
-                }
-            }
-        )
-        isMissingNode -> ContainerNode(mutableMapOf())
-        else -> throw NotImplementedError()
+fun JsonNode.toTree(): TreeNode =
+    when {
+        isNull -> {
+            NullSourceNode
+        }
+
+        isBoolean -> {
+            ValueSourceNode(booleanValue())
+        }
+
+        isNumber -> {
+            ValueSourceNode(numberValue())
+        }
+
+        isTextual -> {
+            ValueSourceNode(textValue())
+        }
+
+        isArray -> {
+            ListSourceNode(
+                mutableListOf<TreeNode>().apply {
+                    elements().forEach {
+                        add(it.toTree())
+                    }
+                },
+            )
+        }
+
+        isObject -> {
+            ContainerNode(
+                mutableMapOf<String, TreeNode>().apply {
+                    for ((key, value) in fields()) {
+                        put(key, value.toTree())
+                    }
+                },
+            )
+        }
+
+        isMissingNode -> {
+            ContainerNode(mutableMapOf())
+        }
+
+        else -> {
+            throw NotImplementedError()
+        }
     }
-}

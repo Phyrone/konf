@@ -46,11 +46,11 @@ class DefaultLoaders(
     /**
      * The given transformation function.
      */
-    private val transform: ((Source) -> Source)? = null
+    private val transform: ((Source) -> Source)? = null,
 ) {
     val optional = config.isEnabled(Feature.OPTIONAL_SOURCE_BY_DEFAULT)
-    fun Provider.orMapped(): Provider =
-        if (transform != null) this.map(transform) else this
+
+    fun Provider.orMapped(): Provider = if (transform != null) this.map(transform) else this
 
     fun Source.orMapped(): Source = transform?.invoke(this) ?: this
 
@@ -60,9 +60,10 @@ class DefaultLoaders(
      * @param transform the given transformation function
      * @return the default loaders applied the given [transform] function
      */
-    fun mapped(transform: (Source) -> Source): DefaultLoaders = DefaultLoaders(config) {
-        transform(it.orMapped())
-    }
+    fun mapped(transform: (Source) -> Source): DefaultLoaders =
+        DefaultLoaders(config) {
+            transform(it.orMapped())
+        }
 
     /**
      * Returns default loaders where sources have specified additional prefix.
@@ -120,7 +121,10 @@ class DefaultLoaders(
     fun env(nested: Boolean = true): Config = config.withSource(EnvProvider.env(nested).orMapped())
 
     @JvmOverloads
-    fun envMap(map: Map<String, String>, nested: Boolean = true): Config = config.withSource(EnvProvider.envMap(map, nested).orMapped())
+    fun envMap(
+        map: Map<String, String>,
+        nested: Boolean = true,
+    ): Config = config.withSource(EnvProvider.envMap(map, nested).orMapped())
 
     /**
      * Returns a child config containing values from system properties.
@@ -136,11 +140,14 @@ class DefaultLoaders(
      * @param source the source description for error message
      * @return the corresponding loader based on extension
      */
-    fun dispatchExtension(extension: String, source: String = ""): Loader =
+    fun dispatchExtension(
+        extension: String,
+        source: String = "",
+    ): Loader =
         Loader(
             config,
             Provider.of(extension)?.orMapped()
-                ?: throw UnsupportedExtensionException(source)
+                ?: throw UnsupportedExtensionException(source),
         )
 
     /**
@@ -162,7 +169,10 @@ class DefaultLoaders(
      * @return a child config containing values from specified file
      * @throws UnsupportedExtensionException
      */
-    fun file(file: File, optional: Boolean = this.optional): Config = dispatchExtension(file.extension, file.name).file(file, optional)
+    fun file(
+        file: File,
+        optional: Boolean = this.optional,
+    ): Config = dispatchExtension(file.extension, file.name).file(file, optional)
 
     /**
      * Returns a child config containing values from specified file path.
@@ -183,7 +193,10 @@ class DefaultLoaders(
      * @return a child config containing values from specified file path
      * @throws UnsupportedExtensionException
      */
-    fun file(file: String, optional: Boolean = this.optional): Config = file(File(file), optional)
+    fun file(
+        file: String,
+        optional: Boolean = this.optional,
+    ): Config = file(File(file), optional)
 
     /**
      * Returns a child config containing values from specified file,
@@ -215,9 +228,10 @@ class DefaultLoaders(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
-    ): Config = dispatchExtension(file.extension, file.name)
-        .watchFile(file, delayTime, unit, context, optional, onLoad)
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
+    ): Config =
+        dispatchExtension(file.extension, file.name)
+            .watchFile(file, delayTime, unit, context, optional, onLoad)
 
     /**
      * Returns a child config containing values from specified file path,
@@ -249,7 +263,7 @@ class DefaultLoaders(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
     ): Config = watchFile(File(file), delayTime, unit, context, optional, onLoad)
 
     /**
@@ -271,7 +285,10 @@ class DefaultLoaders(
      * @return a child config containing values from specified url
      * @throws UnsupportedExtensionException
      */
-    fun url(url: URL, optional: Boolean = this.optional): Config = dispatchExtension(File(url.path).extension, url.toString()).url(url, optional)
+    fun url(
+        url: URL,
+        optional: Boolean = this.optional,
+    ): Config = dispatchExtension(File(url.path).extension, url.toString()).url(url, optional)
 
     /**
      * Returns a child config containing values from specified url string.
@@ -292,7 +309,10 @@ class DefaultLoaders(
      * @return a child config containing values from specified url string
      * @throws UnsupportedExtensionException
      */
-    fun url(url: String, optional: Boolean = this.optional): Config = url(URL(url), optional)
+    fun url(
+        url: String,
+        optional: Boolean = this.optional,
+    ): Config = url(URL(url), optional)
 
     /**
      * Returns a child config containing values from specified url,
@@ -324,9 +344,10 @@ class DefaultLoaders(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
-    ): Config = dispatchExtension(File(url.path).extension, url.toString())
-        .watchUrl(url, period, unit, context, optional, onLoad)
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
+    ): Config =
+        dispatchExtension(File(url.path).extension, url.toString())
+            .watchUrl(url, period, unit, context, optional, onLoad)
 
     /**
      * Returns a child config containing values from specified url string,
@@ -358,7 +379,7 @@ class DefaultLoaders(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
     ): Config = watchUrl(URL(url), period, unit, context, optional, onLoad)
 }
 
@@ -377,7 +398,7 @@ class MapLoader(
     /**
      * The given transformation function.
      */
-    private val transform: ((Source) -> Source)? = null
+    private val transform: ((Source) -> Source)? = null,
 ) {
     fun Source.orMapped(): Source = transform?.invoke(this) ?: this
 

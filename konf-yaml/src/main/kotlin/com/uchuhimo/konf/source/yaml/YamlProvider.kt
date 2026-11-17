@@ -63,13 +63,14 @@ object YamlProvider : Provider {
 
 private class YamlConstructor : SafeConstructor(LoaderOptions()) {
     init {
-        yamlConstructors[Tag.NULL] = object : AbstractConstruct() {
-            override fun construct(node: Node?): Any? {
-                if (node != null) {
-                    constructScalar(node as ScalarNode)
+        yamlConstructors[Tag.NULL] =
+            object : AbstractConstruct() {
+                override fun construct(node: Node?): Any? {
+                    if (node != null) {
+                        constructScalar(node as ScalarNode)
+                    }
+                    return "null"
                 }
-                return "null"
             }
-        }
     }
 }

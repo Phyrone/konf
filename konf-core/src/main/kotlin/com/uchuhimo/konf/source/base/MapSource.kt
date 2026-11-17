@@ -29,7 +29,7 @@ import com.uchuhimo.konf.source.SourceInfo
 open class MapSource(
     val map: Map<String, Any>,
     type: String = "",
-    info: SourceInfo = SourceInfo()
+    info: SourceInfo = SourceInfo(),
 ) : ValueSource(map, type.notEmptyOr("map"), info)
 
 /**
@@ -40,9 +40,7 @@ open class MapSource(
  * `config.from.map.hierarchical(map)`.
  */
 @Suppress("UNCHECKED_CAST")
-fun Config.toHierarchicalMap(): Map<String, Any> {
-    return toTree().toHierarchical() as Map<String, Any>
-}
+fun Config.toHierarchicalMap(): Map<String, Any> = toTree().toHierarchical() as Map<String, Any>
 
 /**
  * Returns a hierarchical value for this tree node.
@@ -51,13 +49,12 @@ fun Config.toHierarchicalMap(): Map<String, Any> {
  */
 fun TreeNode.toHierarchical(): Any = withoutPlaceHolder().toHierarchicalInternal()
 
-private fun TreeNode.toHierarchicalInternal(): Any {
-    return when (this) {
+private fun TreeNode.toHierarchicalInternal(): Any =
+    when (this) {
         is ValueNode -> value
         is ListNode -> list.map { it.toHierarchicalInternal() }
         else -> children.mapValues { (_, child) -> child.toHierarchicalInternal() }
     }
-}
 
 /**
  * Source from an empty map.

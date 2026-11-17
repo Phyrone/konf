@@ -33,11 +33,19 @@ import org.jetbrains.spek.subject.SubjectSpek
 @JsonDeserialize(using = SealedClassDeserializer::class)
 sealed class SealedClass
 
-data class VariantA(val int: Int) : SealedClass()
-data class VariantB(val double: Double) : SealedClass()
+data class VariantA(
+    val int: Int,
+) : SealedClass()
+
+data class VariantB(
+    val double: Double,
+) : SealedClass()
 
 class SealedClassDeserializer : StdDeserializer<SealedClass>(SealedClass::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): SealedClass {
+    override fun deserialize(
+        p: JsonParser,
+        ctxt: DeserializationContext,
+    ): SealedClass {
         val node: JsonNode = p.codec.readTree(p)
         return if (node.has("int")) {
             VariantA(node.get("int").asInt())
@@ -71,7 +79,8 @@ object CustomDeserializerSpec : SubjectSpek<Config>({
     }
 })
 
-private val loadContent = mapOf<String, Any>(
-    "variantA" to mapOf("int" to 1),
-    "variantB" to mapOf("double" to 2.0)
-).mapKeys { (key, _) -> "level1.level2.$key" }
+private val loadContent =
+    mapOf<String, Any>(
+        "variantA" to mapOf("int" to 1),
+        "variantB" to mapOf("double" to 2.0),
+    ).mapKeys { (key, _) -> "level1.level2.$key" }

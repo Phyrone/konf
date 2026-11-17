@@ -45,9 +45,10 @@ object ProviderSpec : SubjectSpek<Provider>({
             }
         }
         on("create source from input stream") {
-            val source = subject.inputStream(
-                tempFileOf("type = inputStream").inputStream()
-            )
+            val source =
+                subject.inputStream(
+                    tempFileOf("type = inputStream").inputStream(),
+                )
             it("should return a source which contains value from input stream") {
                 assertThat(source["type"].asValue<String>(), equalTo("inputStream"))
             }
@@ -72,7 +73,7 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should return an empty source if optional") {
                 assertThat(
                     subject.file(File("not_existed.json"), optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }
@@ -93,7 +94,7 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should return an empty source if optional") {
                 assertThat(
                     subject.file("not_existed.json", optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }
@@ -141,7 +142,7 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should return an empty source if optional") {
                 assertThat(
                     subject.url(URL("http://localhost/not_existed.json"), optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }
@@ -166,7 +167,7 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should return an empty source if optional") {
                 assertThat(
                     subject.url(URL("file://localhost/not_existed.json"), optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }
@@ -188,7 +189,7 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should return an empty source if optional") {
                 assertThat(
                     subject.url("file://localhost/not_existed.json", optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }
@@ -206,13 +207,13 @@ object ProviderSpec : SubjectSpek<Provider>({
             it("should throw SourceNotFoundException") {
                 assertThat(
                     { subject.resource("source/no-provider.properties") },
-                    throws<SourceNotFoundException>()
+                    throws<SourceNotFoundException>(),
                 )
             }
             it("should return an empty source if optional") {
                 assertThat(
                     subject.resource("source/no-provider.properties", optional = true).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }

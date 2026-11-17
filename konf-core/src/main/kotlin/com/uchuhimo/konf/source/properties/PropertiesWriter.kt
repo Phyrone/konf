@@ -26,7 +26,9 @@ import java.util.Properties
 /**
  * Writer for properties source.
  */
-class PropertiesWriter(val config: Config) : Writer {
+class PropertiesWriter(
+    val config: Config,
+) : Writer {
     override fun toWriter(writer: java.io.Writer) {
         NoCommentProperties().apply { putAll(config.toFlatMap()) }.store(writer, null)
     }
@@ -37,7 +39,9 @@ class PropertiesWriter(val config: Config) : Writer {
 }
 
 private class NoCommentProperties : Properties() {
-    private class StripFirstLineStream(out: OutputStream) : FilterOutputStream(out) {
+    private class StripFirstLineStream(
+        out: OutputStream,
+    ) : FilterOutputStream(out) {
         private var firstLineSeen = false
 
         override fun write(b: Int) {
@@ -49,18 +53,30 @@ private class NoCommentProperties : Properties() {
         }
     }
 
-    private class StripFirstLineWriter(writer: java.io.Writer) : java.io.FilterWriter(writer) {
-        override fun write(cbuf: CharArray, off: Int, len: Int) {
+    private class StripFirstLineWriter(
+        writer: java.io.Writer,
+    ) : java.io.FilterWriter(writer) {
+        override fun write(
+            cbuf: CharArray,
+            off: Int,
+            len: Int,
+        ) {
             val offset = cbuf.indexOfFirst { it == '\n' }
             super.write(cbuf, offset + 1, len - offset - 1)
         }
     }
 
-    override fun store(out: OutputStream, comments: String?) {
+    override fun store(
+        out: OutputStream,
+        comments: String?,
+    ) {
         super.store(StripFirstLineStream(out), null)
     }
 
-    override fun store(writer: java.io.Writer, comments: String?) {
+    override fun store(
+        writer: java.io.Writer,
+        comments: String?,
+    ) {
         super.store(StripFirstLineWriter(writer), null)
     }
 }

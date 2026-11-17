@@ -29,32 +29,42 @@ import com.uchuhimo.konf.source.Source
 import com.uchuhimo.konf.source.SourceInfo
 import com.uchuhimo.konf.source.ValueSourceNode
 
-private fun ConfigValue.toTree(): TreeNode {
-    return when (valueType()!!) {
-        ConfigValueType.NULL -> NullSourceNode
-        ConfigValueType.BOOLEAN, ConfigValueType.NUMBER, ConfigValueType.STRING -> ValueSourceNode(unwrapped())
-        ConfigValueType.LIST -> ListSourceNode(
-            mutableListOf<TreeNode>().apply {
-                for (value in (this@toTree as ConfigList)) {
-                    add(value.toTree())
-                }
-            }
-        )
-        ConfigValueType.OBJECT -> ContainerNode(
-            mutableMapOf<String, TreeNode>().apply {
-                for ((key, value) in (this@toTree as ConfigObject)) {
-                    put(key, value.toTree())
-                }
-            }
-        )
+private fun ConfigValue.toTree(): TreeNode =
+    when (valueType()!!) {
+        ConfigValueType.NULL -> {
+            NullSourceNode
+        }
+
+        ConfigValueType.BOOLEAN, ConfigValueType.NUMBER, ConfigValueType.STRING -> {
+            ValueSourceNode(unwrapped())
+        }
+
+        ConfigValueType.LIST -> {
+            ListSourceNode(
+                mutableListOf<TreeNode>().apply {
+                    for (value in (this@toTree as ConfigList)) {
+                        add(value.toTree())
+                    }
+                },
+            )
+        }
+
+        ConfigValueType.OBJECT -> {
+            ContainerNode(
+                mutableMapOf<String, TreeNode>().apply {
+                    for ((key, value) in (this@toTree as ConfigObject)) {
+                        put(key, value.toTree())
+                    }
+                },
+            )
+        }
     }
-}
 
 /**
  * Source from a HOCON value.
  */
 class HoconSource(
-    val value: Config
+    val value: Config,
 ) : Source {
     override val info: SourceInfo = SourceInfo("type" to "HOCON")
 

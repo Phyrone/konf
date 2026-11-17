@@ -16,25 +16,20 @@
 
 package com.uchuhimo.konf
 
-class MergedMap<K, V>(val fallback: MutableMap<K, V>, val facade: MutableMap<K, V>) : MutableMap<K, V> {
+class MergedMap<K, V>(
+    val fallback: MutableMap<K, V>,
+    val facade: MutableMap<K, V>,
+) : MutableMap<K, V> {
     override val size: Int
         get() = keys.size
 
-    override fun containsKey(key: K): Boolean {
-        return facade.containsKey(key) || fallback.containsKey(key)
-    }
+    override fun containsKey(key: K): Boolean = facade.containsKey(key) || fallback.containsKey(key)
 
-    override fun containsValue(value: V): Boolean {
-        return facade.containsValue(value) || fallback.containsValue(value)
-    }
+    override fun containsValue(value: V): Boolean = facade.containsValue(value) || fallback.containsValue(value)
 
-    override fun get(key: K): V? {
-        return facade[key] ?: fallback[key]
-    }
+    override fun get(key: K): V? = facade[key] ?: fallback[key]
 
-    override fun isEmpty(): Boolean {
-        return facade.isEmpty() && fallback.isEmpty()
-    }
+    override fun isEmpty(): Boolean = facade.isEmpty() && fallback.isEmpty()
 
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
         get() = keys.map { it to getValue(it) }.toMap(LinkedHashMap()).entries
@@ -48,9 +43,10 @@ class MergedMap<K, V>(val fallback: MutableMap<K, V>, val facade: MutableMap<K, 
         fallback.clear()
     }
 
-    override fun put(key: K, value: V): V? {
-        return facade.put(key, value)
-    }
+    override fun put(
+        key: K,
+        value: V,
+    ): V? = facade.put(key, value)
 
     override fun putAll(from: Map<out K, V>) {
         facade.putAll(from)

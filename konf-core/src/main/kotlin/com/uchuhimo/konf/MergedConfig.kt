@@ -23,10 +23,14 @@ import com.uchuhimo.konf.source.Source
  *
  * All operations will be applied to [facade] first, and then fall back to [facade] when necessary.
  */
-open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
-    BaseConfig("merged(facade=${facade.name.notEmptyOr("\"\"")}, fallback=${fallback.name.notEmptyOr("\"\"")})") {
-
-    override fun rawSet(item: Item<*>, value: Any?) {
+open class MergedConfig(
+    val fallback: BaseConfig,
+    val facade: BaseConfig,
+) : BaseConfig("merged(facade=${facade.name.notEmptyOr("\"\"")}, fallback=${fallback.name.notEmptyOr("\"\"")})") {
+    override fun rawSet(
+        item: Item<*>,
+        value: Any?,
+    ) {
         if (item in facade) {
             facade.rawSet(item, value)
         } else {
@@ -34,11 +38,12 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
         }
     }
 
-    override fun getItemOrNull(name: String): Item<*>? {
-        return facade.getItemOrNull(name) ?: fallback.getItemOrNull(name)
-    }
+    override fun getItemOrNull(name: String): Item<*>? = facade.getItemOrNull(name) ?: fallback.getItemOrNull(name)
 
-    override fun <T> lazySet(item: Item<T>, thunk: (config: ItemContainer) -> T) {
+    override fun <T> lazySet(
+        item: Item<T>,
+        thunk: (config: ItemContainer) -> T,
+    ) {
         if (item in facade) {
             facade.lazySet(item, thunk)
         } else {
@@ -108,13 +113,17 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
         get() = facade.specs + fallback.specs
 
     override val sources: List<Source>
-        get() = facade.sources.toMutableList().apply {
-            for (source in fallback.sources) {
-                add(source)
+        get() =
+            facade.sources.toMutableList().apply {
+                for (source in fallback.sources) {
+                    add(source)
+                }
             }
-        }
 
-    override fun addItem(item: Item<*>, prefix: String) {
+    override fun addItem(
+        item: Item<*>,
+        prefix: String,
+    ) {
         val path = prefix.toPath() + item.name.toPath()
         val name = path.name
         if (item !in fallback) {
@@ -148,7 +157,7 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
         item: Item<*>,
         errorWhenNotFound: Boolean,
         errorWhenGetDefault: Boolean,
-        lazyContext: ItemContainer
+        lazyContext: ItemContainer,
     ): Any? {
         if (item in facade && item in fallback) {
             try {
@@ -158,6 +167,7 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
                     is UnsetValueException -> {
                         return fallback.getOrNull(item, errorWhenNotFound, errorWhenGetDefault, lazyContext)
                     }
+
                     is GetDefaultValueException -> {
                         try {
                             return fallback.getOrNull(item, errorWhenNotFound, errorWhenGetDefault, lazyContext)
@@ -170,11 +180,17 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
                                         return (item as OptionalItem).default
                                     }
                                 }
-                                else -> throw ex
+
+                                else -> {
+                                    throw ex
+                                }
                             }
                         }
                     }
-                    else -> throw ex
+
+                    else -> {
+                        throw ex
+                    }
                 }
             }
         } else if (item in facade) {
@@ -184,8 +200,7 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
         }
     }
 
-    override fun iterator(): Iterator<Item<*>> =
-        (facade.iterator().asSequence() + fallback.iterator().asSequence()).iterator()
+    override fun iterator(): Iterator<Item<*>> = (facade.iterator().asSequence() + fallback.iterator().asSequence()).iterator()
 
     override fun contains(item: Item<*>): Boolean = item in facade || item in fallback
 
@@ -193,13 +208,12 @@ open class MergedConfig(val fallback: BaseConfig, val facade: BaseConfig) :
 
     override fun contains(path: Path): Boolean = path in facade || path in fallback
 
-    override fun nameOf(item: Item<*>): String {
-        return if (item in facade) {
+    override fun nameOf(item: Item<*>): String =
+        if (item in facade) {
             facade.nameOf(item)
         } else {
             fallback.nameOf(item)
         }
-    }
 
     override val itemWithNames: List<Pair<Item<*>, String>>
         get() = facade.itemWithNames + fallback.itemWithNames

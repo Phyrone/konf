@@ -70,8 +70,10 @@ object DefaultProviders {
      * @param source the source description for error message
      * @return the corresponding provider based on extension
      */
-    fun dispatchExtension(extension: String, source: String = ""): Provider =
-        Provider.of(extension) ?: throw UnsupportedExtensionException(source)
+    fun dispatchExtension(
+        extension: String,
+        source: String = "",
+    ): Provider = Provider.of(extension) ?: throw UnsupportedExtensionException(source)
 
     /**
      * Returns a source from specified file.
@@ -92,7 +94,10 @@ object DefaultProviders {
      * @return a source from specified file
      * @throws UnsupportedExtensionException
      */
-    fun file(file: File, optional: Boolean = false): Source = dispatchExtension(file.extension, file.name).file(file, optional)
+    fun file(
+        file: File,
+        optional: Boolean = false,
+    ): Source = dispatchExtension(file.extension, file.name).file(file, optional)
 
     /**
      * Returns a source from specified file path.
@@ -113,7 +118,10 @@ object DefaultProviders {
      * @return a source from specified file path
      * @throws UnsupportedExtensionException
      */
-    fun file(file: String, optional: Boolean = false): Source = file(File(file), optional)
+    fun file(
+        file: String,
+        optional: Boolean = false,
+    ): Source = file(File(file), optional)
 
     /**
      * Returns a source from specified url.
@@ -134,8 +142,10 @@ object DefaultProviders {
      * @return a source from specified url
      * @throws UnsupportedExtensionException
      */
-    fun url(url: URL, optional: Boolean = false): Source =
-        dispatchExtension(File(url.path).extension, url.toString()).url(url, optional)
+    fun url(
+        url: URL,
+        optional: Boolean = false,
+    ): Source = dispatchExtension(File(url.path).extension, url.toString()).url(url, optional)
 
     /**
      * Returns a source from specified url string.
@@ -156,7 +166,10 @@ object DefaultProviders {
      * @return a source from specified url string
      * @throws UnsupportedExtensionException
      */
-    fun url(url: String, optional: Boolean = false): Source = url(URL(url), optional)
+    fun url(
+        url: String,
+        optional: Boolean = false,
+    ): Source = url(URL(url), optional)
 }
 
 /**

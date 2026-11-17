@@ -35,9 +35,10 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 object GitLoaderSpec : SubjectSpek<Loader>({
-    val parentConfig = Config {
-        addSpec(SourceType)
-    }
+    val parentConfig =
+        Config {
+            addSpec(SourceType)
+        }
     subject {
         Loader(parentConfig, PropertiesProvider)
     }
@@ -45,18 +46,25 @@ object GitLoaderSpec : SubjectSpek<Loader>({
     given("a loader") {
         on("load from git repository") {
             tempDirectory().let { dir ->
-                Git.init().apply {
-                    setDirectory(dir)
-                }.call().use { git ->
-                    Paths.get(dir.path, "test").toFile().writeText("type = git")
-                    git.add().apply {
-                        addFilepattern("test")
+                Git
+                    .init()
+                    .apply {
+                        setDirectory(dir)
                     }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "init commit"
-                    }.call()
-                }
+                    .use { git ->
+                        Paths.get(dir.path, "test").toFile().writeText("type = git")
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("test")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "init commit"
+                            }.call()
+                    }
                 val repo = dir.toURI()
                 val config = subject.git(repo.toString(), "test")
                 it("should return a config which contains value in git repository") {
@@ -71,7 +79,7 @@ object GitLoaderSpec : SubjectSpek<Loader>({
                     "test",
                     period = 1,
                     unit = TimeUnit.SECONDS,
-                    context = Dispatchers.Sequential
+                    context = Dispatchers.Sequential,
                 )
             },
             "load from watched git repository to the given directory" to { loader: Loader, repo: String ->
@@ -82,37 +90,48 @@ object GitLoaderSpec : SubjectSpek<Loader>({
                     branch = Constants.HEAD,
                     unit = TimeUnit.SECONDS,
                     context = Dispatchers.Sequential,
-                    optional = false
+                    optional = false,
                 )
-            }
+            },
         ).forEach { (description, func) ->
             on(description) {
                 tempDirectory(prefix = "remote_git_repo", suffix = ".git").let { dir ->
                     val file = Paths.get(dir.path, "test").toFile()
-                    Git.init().apply {
-                        setDirectory(dir)
-                    }.call().use { git ->
-                        file.writeText("type = originalValue")
-                        git.add().apply {
-                            addFilepattern("test")
+                    Git
+                        .init()
+                        .apply {
+                            setDirectory(dir)
                         }.call()
-                        git.commit().apply {
-                            setSign(false)
-                            message = "init commit"
-                        }.call()
-                    }
+                        .use { git ->
+                            file.writeText("type = originalValue")
+                            git
+                                .add()
+                                .apply {
+                                    addFilepattern("test")
+                                }.call()
+                            git
+                                .commit()
+                                .apply {
+                                    setSign(false)
+                                    message = "init commit"
+                                }.call()
+                        }
                     val repo = dir.toURI()
                     val config = func(subject, repo.toString())
                     val originalValue = config[SourceType.type]
                     file.writeText("type = newValue")
                     Git.open(dir).use { git ->
-                        git.add().apply {
-                            addFilepattern("test")
-                        }.call()
-                        git.commit().apply {
-                            setSign(false)
-                            message = "update value"
-                        }.call()
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("test")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "update value"
+                            }.call()
                     }
                     runBlocking(Dispatchers.Sequential) {
                         delay(TimeUnit.SECONDS.toMillis(1))
@@ -130,39 +149,51 @@ object GitLoaderSpec : SubjectSpek<Loader>({
         on("load from watched git repository with listener") {
             tempDirectory(prefix = "remote_git_repo", suffix = ".git").let { dir ->
                 val file = Paths.get(dir.path, "test").toFile()
-                Git.init().apply {
-                    setDirectory(dir)
-                }.call().use { git ->
-                    file.writeText("type = originalValue")
-                    git.add().apply {
-                        addFilepattern("test")
+                Git
+                    .init()
+                    .apply {
+                        setDirectory(dir)
                     }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "init commit"
-                    }.call()
-                }
+                    .use { git ->
+                        file.writeText("type = originalValue")
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("test")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "init commit"
+                            }.call()
+                    }
                 val repo = dir.toURI()
                 var newValue = ""
-                val config = subject.watchGit(
-                    repo.toString(),
-                    "test",
-                    period = 1,
-                    unit = TimeUnit.SECONDS,
-                    context = Dispatchers.Sequential
-                ) { config, _ ->
-                    newValue = config[SourceType.type]
-                }
+                val config =
+                    subject.watchGit(
+                        repo.toString(),
+                        "test",
+                        period = 1,
+                        unit = TimeUnit.SECONDS,
+                        context = Dispatchers.Sequential,
+                    ) { config, _ ->
+                        newValue = config[SourceType.type]
+                    }
                 val originalValue = config[SourceType.type]
                 file.writeText("type = newValue")
                 Git.open(dir).use { git ->
-                    git.add().apply {
-                        addFilepattern("test")
-                    }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "update value"
-                    }.call()
+                    git
+                        .add()
+                        .apply {
+                            addFilepattern("test")
+                        }.call()
+                    git
+                        .commit()
+                        .apply {
+                            setSign(false)
+                            message = "update value"
+                        }.call()
                 }
                 runBlocking(Dispatchers.Sequential) {
                     delay(TimeUnit.SECONDS.toMillis(1))

@@ -25,9 +25,10 @@ import org.jetbrains.spek.api.dsl.on
 
 object MultipleDefaultLoadersSpec : Spek({
     on("load from multiple sources") {
-        val config = Config {
-            addSpec(DefaultLoadersConfig)
-        }
+        val config =
+            Config {
+                addSpec(DefaultLoadersConfig)
+            }
         val item = DefaultLoadersConfig.type
         val afterLoadEnv = config.from.env()
         System.setProperty(config.nameOf(DefaultLoadersConfig.type), "system")
@@ -40,15 +41,16 @@ object MultipleDefaultLoadersSpec : Spek({
         val afterLoadYaml = afterLoadXml.from.yaml.string(yamlContent)
         val afterLoadFlat = afterLoadYaml.from.map.flat(mapOf("source.test.type" to "flat"))
         val afterLoadKv = afterLoadFlat.from.map.kv(mapOf("source.test.type" to "kv"))
-        val afterLoadHierarchical = afterLoadKv.from.map.hierarchical(
-            mapOf(
-                "source" to
-                    mapOf(
-                        "test" to
-                            mapOf("type" to "hierarchical")
-                    )
+        val afterLoadHierarchical =
+            afterLoadKv.from.map.hierarchical(
+                mapOf(
+                    "source" to
+                        mapOf(
+                            "test" to
+                                mapOf("type" to "hierarchical"),
+                        ),
+                ),
             )
-        )
         it("should load the corresponding value in each layer") {
             assertThat(afterLoadEnv[item], equalTo("env"))
             assertThat(afterLoadSystemProperties[item], equalTo("system"))

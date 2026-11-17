@@ -161,7 +161,7 @@ object DefaultLoadersSpec : SubjectSpek<DefaultLoaders>({
                 file,
                 1,
                 unit = TimeUnit.SECONDS,
-                context = Dispatchers.Sequential
+                context = Dispatchers.Sequential,
             ) { config, _ ->
                 newValue = config[item]
             }
@@ -297,14 +297,15 @@ object DefaultLoadersSpec : SubjectSpek<DefaultLoaders>({
             service.awaitInitialization()
             val url = "http://localhost:${service.port()}/source.properties"
             var newValue = ""
-            val config = subject.watchUrl(
-                url,
-                period = 1,
-                unit = TimeUnit.SECONDS,
-                context = Dispatchers.Sequential
-            ) { config, _ ->
-                newValue = config[item]
-            }
+            val config =
+                subject.watchUrl(
+                    url,
+                    period = 1,
+                    unit = TimeUnit.SECONDS,
+                    context = Dispatchers.Sequential,
+                ) { config, _ ->
+                    newValue = config[item]
+                }
             val originalValue = config[item]
             content = propertiesContent.replace("properties", "newValue")
             runBlocking(Dispatchers.Sequential) {
@@ -328,9 +329,10 @@ object DefaultLoadersSpec : SubjectSpek<DefaultLoaders>({
 object DefaultLoadersWithFlattenEnvSpec : Spek({
     given("a loader") {
         on("load as flatten format from system environment") {
-            val config = Config {
-                addSpec(FlattenDefaultLoadersConfig)
-            }.from.env(nested = false)
+            val config =
+                Config {
+                    addSpec(FlattenDefaultLoadersConfig)
+                }.from.env(nested = false)
             it("should return a config which contains value from system environment") {
                 assertThat(config[FlattenDefaultLoadersConfig.SOURCE_TEST_TYPE], equalTo("env"))
             }

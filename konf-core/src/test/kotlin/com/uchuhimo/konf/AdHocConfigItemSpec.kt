@@ -27,13 +27,14 @@ import kotlin.test.assertNull
 
 object AdHocConfigItemSpec : Spek({
     on("load config into ad-hoc config class with ad-hoc config items") {
-        val config = Config().from.map.kv(
-            mapOf(
-                "network.buffer.size" to 1,
-                "network.buffer.heap.type" to AdHocNetworkBuffer.Type.ON_HEAP,
-                "network.buffer.offset" to 0
+        val config =
+            Config().from.map.kv(
+                mapOf(
+                    "network.buffer.size" to 1,
+                    "network.buffer.heap.type" to AdHocNetworkBuffer.Type.ON_HEAP,
+                    "network.buffer.offset" to 0,
+                ),
             )
-        )
         val networkBuffer = AdHocNetworkBuffer(config)
         it("should load correct values") {
             assertThat(networkBuffer.size, equalTo(1))
@@ -43,15 +44,16 @@ object AdHocConfigItemSpec : Spek({
             assertThat(networkBuffer.offset, equalTo(0))
         }
     }
-    val source = Source.from.map.hierarchical(
-        mapOf(
-            "size" to 1,
-            "maxSize" to 2,
-            "name" to "buffer",
-            "type" to "ON_HEAP",
-            "offset" to "null"
+    val source =
+        Source.from.map.hierarchical(
+            mapOf(
+                "size" to 1,
+                "maxSize" to 2,
+                "name" to "buffer",
+                "type" to "ON_HEAP",
+                "offset" to "null",
+            ),
         )
-    )
     on("cast config to config class property") {
         val networkBufferForCast: NetworkBufferForCast by Config().withSource(source).cast()
         it("should load correct values") {
@@ -73,7 +75,12 @@ object AdHocConfigItemSpec : Spek({
         }
     }
     on("cast multi-layer config to config class") {
-        val networkBufferForCast = Config().withSource(source).from.json.string("").toValue<NetworkBufferForCast>()
+        val networkBufferForCast =
+            Config()
+                .withSource(source)
+                .from.json
+                .string("")
+                .toValue<NetworkBufferForCast>()
         it("should load correct values") {
             assertThat(networkBufferForCast.size, equalTo(1))
             assertThat(networkBufferForCast.maxSize, equalTo(2))
@@ -109,10 +116,10 @@ data class NetworkBufferForCast(
     val maxSize: Int,
     val name: String,
     val type: Type,
-    val offset: Int?
+    val offset: Int?,
 ) {
-
     enum class Type {
-        ON_HEAP, OFF_HEAP
+        ON_HEAP,
+        OFF_HEAP,
     }
 }

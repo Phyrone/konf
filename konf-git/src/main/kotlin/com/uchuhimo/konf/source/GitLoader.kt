@@ -41,9 +41,8 @@ fun Loader.git(
     file: String,
     dir: String? = null,
     branch: String = Constants.HEAD,
-    optional: Boolean = this.optional
-): Config =
-    config.withSource(provider.git(repo, file, dir, branch, optional))
+    optional: Boolean = this.optional,
+): Config = config.withSource(provider.git(repo, file, dir, branch, optional))
 
 /**
  * Returns a child config containing values from a specified git repository,
@@ -69,27 +68,27 @@ fun Loader.watchGit(
     unit: TimeUnit = TimeUnit.MINUTES,
     context: CoroutineContext = Dispatchers.Default,
     optional: Boolean = this.optional,
-    onLoad: ((config: Config, source: Source) -> Unit)? = null
-): Config {
-    return (dir ?: tempDirectory(prefix = "local_git_repo").path).let { directory ->
+    onLoad: ((config: Config, source: Source) -> Unit)? = null,
+): Config =
+    (dir ?: tempDirectory(prefix = "local_git_repo").path).let { directory ->
         provider.git(repo, file, directory, branch, optional).let { source ->
-            config.withLoadTrigger("watch ${source.description}") { newConfig, load ->
-                newConfig.lock {
-                    load(source)
-                }
-                onLoad?.invoke(newConfig, source)
-                GlobalScope.launch(context) {
-                    while (true) {
-                        delay(unit.toMillis(period))
-                        val newSource = provider.git(repo, file, directory, branch, optional)
-                        newConfig.lock {
-                            newConfig.clear()
-                            load(newSource)
-                        }
-                        onLoad?.invoke(newConfig, newSource)
+            config
+                .withLoadTrigger("watch ${source.description}") { newConfig, load ->
+                    newConfig.lock {
+                        load(source)
                     }
-                }
-            }.withLayer()
+                    onLoad?.invoke(newConfig, source)
+                    GlobalScope.launch(context) {
+                        while (true) {
+                            delay(unit.toMillis(period))
+                            val newSource = provider.git(repo, file, directory, branch, optional)
+                            newConfig.lock {
+                                newConfig.clear()
+                                load(newSource)
+                            }
+                            onLoad?.invoke(newConfig, newSource)
+                        }
+                    }
+                }.withLayer()
         }
     }
-}

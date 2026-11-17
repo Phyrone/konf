@@ -22,11 +22,14 @@ import com.uchuhimo.konf.Path
 import com.uchuhimo.konf.TreeNode
 import java.util.Collections
 
-class MergedSource(val facade: Source, val fallback: Source) : Source {
+class MergedSource(
+    val facade: Source,
+    val fallback: Source,
+) : Source {
     override val info: SourceInfo by lazy {
         SourceInfo(
             "facade" to facade.description,
-            "fallback" to fallback.description
+            "fallback" to fallback.description,
         )
     }
 
@@ -35,7 +38,7 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
     override val features: Map<Feature, Boolean> by lazy {
         MergedMap(
             Collections.unmodifiableMap(fallback.features),
-            Collections.unmodifiableMap(facade.features)
+            Collections.unmodifiableMap(facade.features),
         )
     }
 
@@ -43,7 +46,11 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
 
     override fun enabled(feature: Feature): Source = MergedSource(facade.enabled(feature), fallback)
 
-    override fun substituted(root: Source, enabled: Boolean, errorWhenUndefined: Boolean): Source {
+    override fun substituted(
+        root: Source,
+        enabled: Boolean,
+        errorWhenUndefined: Boolean,
+    ): Source {
         val substitutedFacade = facade.substituted(root, enabled, errorWhenUndefined)
         val substitutedFallback = fallback.substituted(root, enabled, errorWhenUndefined)
         if (substitutedFacade === facade && substitutedFallback === fallback) {
@@ -73,7 +80,10 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
         }
     }
 
-    override fun normalized(lowercased: Boolean, littleCamelCased: Boolean): Source {
+    override fun normalized(
+        lowercased: Boolean,
+        littleCamelCased: Boolean,
+    ): Source {
         val normalizedFacade = facade.normalized(lowercased, littleCamelCased)
         val normalizedFallback = fallback.normalized(lowercased, littleCamelCased)
         if (normalizedFacade === facade && normalizedFallback === fallback) {
@@ -83,7 +93,11 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
         }
     }
 
-    override fun getNodeOrNull(path: Path, lowercased: Boolean, littleCamelCased: Boolean): TreeNode? {
+    override fun getNodeOrNull(
+        path: Path,
+        lowercased: Boolean,
+        littleCamelCased: Boolean,
+    ): TreeNode? {
         val facadeNode = facade.getNodeOrNull(path, lowercased, littleCamelCased)
         val fallbackNode = fallback.getNodeOrNull(path, lowercased, littleCamelCased)
         return if (facadeNode != null) {
@@ -97,8 +111,8 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
         }
     }
 
-    override fun getOrNull(path: Path): Source? {
-        return if (path.isEmpty()) {
+    override fun getOrNull(path: Path): Source? =
+        if (path.isEmpty()) {
             this
         } else {
             val subFacade = facade.getOrNull(path)
@@ -113,13 +127,11 @@ class MergedSource(val facade: Source, val fallback: Source) : Source {
                 subFallback
             }
         }
-    }
 
-    override fun withPrefix(prefix: Path): Source {
-        return if (prefix.isEmpty()) {
+    override fun withPrefix(prefix: Path): Source =
+        if (prefix.isEmpty()) {
             this
         } else {
             MergedSource(facade.withPrefix(prefix), fallback.withPrefix(prefix))
         }
-    }
 }

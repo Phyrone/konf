@@ -57,7 +57,10 @@ interface Provider {
      * @param optional whether this source is optional
      * @return a new source from specified file
      */
-    fun file(file: File, optional: Boolean = false): Source {
+    fun file(
+        file: File,
+        optional: Boolean = false,
+    ): Source {
         val extendContext: Source.() -> Unit = {
             info["file"] = file.toString()
         }
@@ -76,7 +79,10 @@ interface Provider {
      * @param optional whether this source is optional
      * @return a new source from specified file path
      */
-    fun file(file: String, optional: Boolean = false): Source = file(File(file), optional)
+    fun file(
+        file: String,
+        optional: Boolean = false,
+    ): Source = file(File(file), optional)
 
     /**
      * Returns a new source from specified string.
@@ -84,9 +90,10 @@ interface Provider {
      * @param content specified string
      * @return a new source from specified string
      */
-    fun string(content: String): Source = reader(content.reader()).apply {
-        info["content"] = "\"\n$content\n\""
-    }
+    fun string(content: String): Source =
+        reader(content.reader()).apply {
+            info["content"] = "\"\n$content\n\""
+        }
 
     /**
      * Returns a new source from specified byte array.
@@ -94,11 +101,10 @@ interface Provider {
      * @param content specified byte array
      * @return a new source from specified byte array
      */
-    fun bytes(content: ByteArray): Source {
-        return content.inputStream().use {
+    fun bytes(content: ByteArray): Source =
+        content.inputStream().use {
             inputStream(it)
         }
-    }
 
     /**
      * Returns a new source from specified portion of byte array.
@@ -108,11 +114,14 @@ interface Provider {
      * @param length the length of the portion of the array to read
      * @return a new source from specified portion of byte array
      */
-    fun bytes(content: ByteArray, offset: Int, length: Int): Source {
-        return content.inputStream(offset, length).use {
+    fun bytes(
+        content: ByteArray,
+        offset: Int,
+        length: Int,
+    ): Source =
+        content.inputStream(offset, length).use {
             inputStream(it)
         }
-    }
 
     /**
      * Returns a new source from specified url.
@@ -121,7 +130,10 @@ interface Provider {
      * @param optional whether this source is optional
      * @return a new source from specified url
      */
-    fun url(url: URL, optional: Boolean = false): Source {
+    fun url(
+        url: URL,
+        optional: Boolean = false,
+    ): Source {
         // from com.fasterxml.jackson.core.JsonFactory._optimizedStreamFromURL in version 2.8.9
         val extendContext: Source.() -> Unit = {
             info["url"] = url.toString()
@@ -162,7 +174,10 @@ interface Provider {
      * @param optional whether this source is optional
      * @return a new source from specified url string
      */
-    fun url(url: String, optional: Boolean = false): Source = url(URL(url), optional)
+    fun url(
+        url: String,
+        optional: Boolean = false,
+    ): Source = url(URL(url), optional)
 
     /**
      * Returns a new source from specified resource.
@@ -171,20 +186,24 @@ interface Provider {
      * @param optional whether this source is optional
      * @return a new source from specified resource
      */
-    fun resource(resource: String, optional: Boolean = false): Source {
+    fun resource(
+        resource: String,
+        optional: Boolean = false,
+    ): Source {
         val extendContext: Source.() -> Unit = {
             info["resource"] = resource
         }
         val loader = Thread.currentThread().contextClassLoader
-        val e = try {
-            loader.getResources(resource)
-        } catch (ex: IOException) {
-            if (optional) {
-                return EmptyMapSource().apply(extendContext)
-            } else {
-                throw ex
+        val e =
+            try {
+                loader.getResources(resource)
+            } catch (ex: IOException) {
+                if (optional) {
+                    return EmptyMapSource().apply(extendContext)
+                } else {
+                    throw ex
+                }
             }
-        }
         if (!e.hasMoreElements()) {
             if (optional) {
                 return EmptyMapSource().apply(extendContext)
@@ -208,62 +227,74 @@ interface Provider {
      * @param transform the given transformation function
      * @return a provider providing sources that applying the given [transform] function
      */
-    fun map(transform: (Source) -> Source): Provider {
-        return object : Provider {
-            override fun reader(reader: Reader): Source =
-                this@Provider.reader(reader).let(transform)
+    fun map(transform: (Source) -> Source): Provider =
+        object : Provider {
+            override fun reader(reader: Reader): Source = this@Provider.reader(reader).let(transform)
 
-            override fun inputStream(inputStream: InputStream): Source =
-                this@Provider.inputStream(inputStream).let(transform)
+            override fun inputStream(inputStream: InputStream): Source = this@Provider.inputStream(inputStream).let(transform)
 
-            override fun file(file: File, optional: Boolean): Source =
-                this@Provider.file(file, optional).let(transform)
+            override fun file(
+                file: File,
+                optional: Boolean,
+            ): Source = this@Provider.file(file, optional).let(transform)
 
-            override fun file(file: String, optional: Boolean): Source =
-                this@Provider.file(file, optional).let(transform)
+            override fun file(
+                file: String,
+                optional: Boolean,
+            ): Source = this@Provider.file(file, optional).let(transform)
 
-            override fun string(content: String): Source =
-                this@Provider.string(content).let(transform)
+            override fun string(content: String): Source = this@Provider.string(content).let(transform)
 
-            override fun bytes(content: ByteArray): Source =
-                this@Provider.bytes(content).let(transform)
+            override fun bytes(content: ByteArray): Source = this@Provider.bytes(content).let(transform)
 
-            override fun bytes(content: ByteArray, offset: Int, length: Int): Source =
-                this@Provider.bytes(content, offset, length).let(transform)
+            override fun bytes(
+                content: ByteArray,
+                offset: Int,
+                length: Int,
+            ): Source = this@Provider.bytes(content, offset, length).let(transform)
 
-            override fun url(url: URL, optional: Boolean): Source =
-                this@Provider.url(url, optional).let(transform)
+            override fun url(
+                url: URL,
+                optional: Boolean,
+            ): Source = this@Provider.url(url, optional).let(transform)
 
-            override fun url(url: String, optional: Boolean): Source =
-                this@Provider.url(url, optional).let(transform)
+            override fun url(
+                url: String,
+                optional: Boolean,
+            ): Source = this@Provider.url(url, optional).let(transform)
 
-            override fun resource(resource: String, optional: Boolean): Source =
-                this@Provider.resource(resource, optional).let(transform)
+            override fun resource(
+                resource: String,
+                optional: Boolean,
+            ): Source = this@Provider.resource(resource, optional).let(transform)
         }
-    }
 
     companion object {
         // Initialized lazily: providers implement this interface, so scanning them while the
         // interface itself is being initialized would observe their not-yet-created instances.
         private val extensionToProvider by lazy {
-            val map = ConcurrentHashMap<String, Provider>(
-                mutableMapOf(
-                    "json" to JsonProvider,
-                    "properties" to PropertiesProvider
+            val map =
+                ConcurrentHashMap<String, Provider>(
+                    mutableMapOf(
+                        "json" to JsonProvider,
+                        "properties" to PropertiesProvider,
+                    ),
                 )
-            )
-            val reflections = Reflections(
-                "com.uchuhimo.konf",
-                SubTypesScanner(),
-                TypeAnnotationsScanner()
-            )
-            val providers = reflections.getSubTypesOf(Provider::class.java)
-                .intersect(reflections.getTypesAnnotatedWith(RegisterExtension::class.java))
+            val reflections =
+                Reflections(
+                    "com.uchuhimo.konf",
+                    SubTypesScanner(),
+                    TypeAnnotationsScanner(),
+                )
+            val providers =
+                reflections
+                    .getSubTypesOf(Provider::class.java)
+                    .intersect(reflections.getTypesAnnotatedWith(RegisterExtension::class.java))
             for (provider in providers) {
                 for (
-                    annotation in ReflectionUtils.getAnnotations(provider).filter {
-                        it.annotationClass == RegisterExtension::class
-                    }
+                annotation in ReflectionUtils.getAnnotations(provider).filter {
+                    it.annotationClass == RegisterExtension::class
+                }
                 ) {
                     for (extension in (annotation as RegisterExtension).value) {
                         map[extension] = provider.kotlin.objectInstance!! as Provider
@@ -279,7 +310,10 @@ interface Provider {
          * @param extension the file extension
          * @param provider the corresponding provider
          */
-        fun registerExtension(extension: String, provider: Provider) {
+        fun registerExtension(
+            extension: String,
+            provider: Provider,
+        ) {
             extensionToProvider[extension] = provider
         }
 
@@ -288,8 +322,7 @@ interface Provider {
          *
          * @param extension the file extension
          */
-        fun unregisterExtension(extension: String): Provider? =
-            extensionToProvider.remove(extension)
+        fun unregisterExtension(extension: String): Provider? = extensionToProvider.remove(extension)
 
         /**
          * Returns corresponding provider based on extension.
@@ -299,11 +332,12 @@ interface Provider {
          * @param extension the file extension
          * @return the corresponding provider based on extension
          */
-        fun of(extension: String): Provider? =
-            extensionToProvider[extension]
+        fun of(extension: String): Provider? = extensionToProvider[extension]
     }
 }
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class RegisterExtension(val value: Array<String>)
+annotation class RegisterExtension(
+    val value: Array<String>,
+)

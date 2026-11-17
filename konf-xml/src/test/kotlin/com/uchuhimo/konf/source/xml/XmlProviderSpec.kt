@@ -30,8 +30,10 @@ object XmlProviderSpec : SubjectSpek<XmlProvider>({
     subject { XmlProvider }
 
     //language=XML
-    fun xmlDoc(name: String, value: String) =
-        """
+    fun xmlDoc(
+        name: String,
+        value: String,
+    ) = """
         <?xml version="1.0" encoding="UTF-8"?>
         <configuration>
             <property>
@@ -52,9 +54,10 @@ object XmlProviderSpec : SubjectSpek<XmlProvider>({
             }
         }
         on("create source from input stream") {
-            val source = subject.inputStream(
-                tempFileOf(xmlDoc("type", "inputStream")).inputStream()
-            )
+            val source =
+                subject.inputStream(
+                    tempFileOf(xmlDoc("type", "inputStream")).inputStream(),
+                )
             it("should have correct type") {
                 assertThat(source.info["type"], equalTo("XML"))
             }
@@ -67,7 +70,7 @@ object XmlProviderSpec : SubjectSpek<XmlProvider>({
             it("should return an empty source") {
                 assertThat(
                     subject.file(file).tree.children,
-                    equalTo(mutableMapOf())
+                    equalTo(mutableMapOf()),
                 )
             }
         }

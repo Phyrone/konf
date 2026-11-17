@@ -28,7 +28,9 @@ import java.io.OutputStream
 /**
  * Writer for XML source.
  */
-class XmlWriter(val config: Config) : Writer {
+class XmlWriter(
+    val config: Config,
+) : Writer {
     private fun Map<String, String>.toDocument(): Document {
         val document = DocumentHelper.createDocument()
         val rootElement = document.addElement("configuration")
@@ -40,9 +42,10 @@ class XmlWriter(val config: Config) : Writer {
         return document
     }
 
-    private val outputFormat = OutputFormat.createPrettyPrint().apply {
-        lineSeparator = System.lineSeparator()
-    }
+    private val outputFormat =
+        OutputFormat.createPrettyPrint().apply {
+            lineSeparator = System.lineSeparator()
+        }
 
     override fun toWriter(writer: java.io.Writer) {
         val xmlWriter = XMLWriter(writer, outputFormat)
