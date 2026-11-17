@@ -6,6 +6,7 @@ plugins {
     `java-test-fixtures`
     id("org.jetbrains.kotlin.jvm")
     id("com.diffplug.spotless")
+    jacoco
     id("konf.publishing")
 }
 
@@ -79,6 +80,10 @@ tasks.test {
     inputs.file(envProperties)
     val properties = Properties().apply { envProperties.asFile.inputStream().use { load(it) } }
     properties.forEach { key, value -> environment(key as String, value) }
+}
+
+jacoco {
+    toolVersion = libs.version("jacoco")
 }
 
 spotless {
