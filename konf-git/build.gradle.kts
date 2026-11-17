@@ -1,6 +1,10 @@
+plugins {
+    id("konf.kotlin-library")
+}
+
 dependencies {
     api(project(":konf-core"))
-    api("org.eclipse.jgit", "org.eclipse.jgit", Versions.jgit)
+    api(libs.jgit)
 
     testImplementation(testFixtures(project(":konf-core")))
 }

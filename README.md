@@ -2,7 +2,7 @@ this is a fork of https://github.com/uchuhimo/konf as the original project appea
 I merged the open pull requests and fixed some bugs.
 # Konf
 
-[![Java 8+](https://img.shields.io/badge/Java-8+-4c7e9f.svg)](http://java.oracle.com)
+[![Java 21+](https://img.shields.io/badge/Java-21+-4c7e9f.svg)](http://java.oracle.com)
 [![Maven metadata URL](https://img.shields.io/maven-central/v/com.uchuhimo/konf)](https://search.maven.org/artifact/com.uchuhimo/konf)
 [![JitPack](https://img.shields.io/jitpack/v/github/uchuhimo/konf)](https://jitpack.io/#uchuhimo/konf)
 [![Build Status](https://travis-ci.org/uchuhimo/konf.svg?branch=master)](https://travis-ci.org/uchuhimo/konf)
@@ -67,7 +67,7 @@ A type-safe cascading configuration library for Kotlin/Java/Android, supporting 
 
 ## Prerequisites
 
-- JDK 8 or higher
+- JDK 21 or higher
 - tested on Android SDK 23 or higher
 
 ## Use in your projects
