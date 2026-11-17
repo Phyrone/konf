@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege by default; jobs that need more ask for it explicitly.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel in-flight runs on master or tags, so every publish completes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build (JDK ${{ matrix.java }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [21, 25]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    permissions:
+      contents: read
+      checks: write # test report check runs
+      pull-requests: write # coverage PR comment
+    env:
+      # Coverage is reported from a single matrix leg to avoid duplicate reports.
+      COVERAGE: ${{ matrix.os == 'ubuntu-latest' && matrix.java == 21 }}
+      # Fork PRs get a read-only token: fall back to annotations / job summaries.
+      FORK_PR: ${{ github.event.pull_request.head.repo.fork == true }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          # JDK 21 is the compile toolchain; the last listed (matrix) JDK runs Gradle.
+          java-version: |
+            21
+            ${{ matrix.java }}
+
+      # Validates the wrapper, caches Gradle User Home, writes a job summary and
+      # publishes a Build Scan to scans.gradle.com (linked from the summary).
+      # Only master writes the cache; PRs and tags read it.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
+
+      - name: Build
+        run: ./gradlew build ${{ env.COVERAGE == 'true' && 'testCodeCoverageReport' || '' }} --continue
+
+      - name: Report test results
+        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@a16be3a69023e9bd7e748ede768b3282ea7b30ce # v6.7.1
+        with:
+          report_paths: "**/build/test-results/test/TEST-*.xml"
+          check_name: Tests (JDK ${{ matrix.java }}, ${{ matrix.os }})
+          annotate_only: ${{ env.FORK_PR == 'true' }}
+          detailed_summary: true
+          require_tests: true
+
+      - name: Report coverage
+        if: ${{ !cancelled() && env.COVERAGE == 'true' && github.event_name == 'pull_request' }}
+        uses: madrapps/jacoco-report@e51ce1f46f7f8b5331593f935e59cbaf44b84920 # v1.8.0
+        with:
+          paths: build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code coverage
+          update-comment: true
+          comment-type: ${{ env.FORK_PR == 'true' && 'summary' || 'both' }}
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() && env.COVERAGE == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-report
+          path: build/reports/jacoco/testCodeCoverageReport/
+          retention-days: 14
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports-${{ matrix.os }}-jdk${{ matrix.java }}
+          path: "**/build/reports/tests/"
+          retention-days: 7
+
+  publish:
+    name: Publish to GitHub Packages
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
+
+      # Tests already passed in the build job, so skip re-running them here.
+      # Tag builds publish the tag's version; the tag name is read from the environment
+      # (never interpolated into the script) and must look like a version.
+      - name: Publish
+        shell: bash
+        run: |
+          args=()
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+              echo "::error::Tag '$GITHUB_REF_NAME' is not a valid version tag (expected vX.Y.Z)"
+              exit 1
+            fi
+            args+=("-Pkonf.version=$version")
+          fi
+          ./gradlew publish -x check "${args[@]}"
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
