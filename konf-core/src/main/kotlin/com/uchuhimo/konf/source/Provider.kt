@@ -243,14 +243,15 @@ interface Provider {
     }
 
     companion object {
-        private val extensionToProvider = ConcurrentHashMap(
-            mutableMapOf(
-                "json" to JsonProvider,
-                "properties" to PropertiesProvider
+        // Initialized lazily: providers implement this interface, so scanning them while the
+        // interface itself is being initialized would observe their not-yet-created instances.
+        private val extensionToProvider by lazy {
+            val map = ConcurrentHashMap<String, Provider>(
+                mutableMapOf(
+                    "json" to JsonProvider,
+                    "properties" to PropertiesProvider
+                )
             )
-        )
-
-        init {
             val reflections = Reflections(
                 "com.uchuhimo.konf",
                 SubTypesScanner(),
@@ -265,10 +266,11 @@ interface Provider {
                     }
                 ) {
                     for (extension in (annotation as RegisterExtension).value) {
-                        registerExtension(extension, provider.kotlin.objectInstance!! as Provider)
+                        map[extension] = provider.kotlin.objectInstance!! as Provider
                     }
                 }
             }
+            map
         }
 
         /**

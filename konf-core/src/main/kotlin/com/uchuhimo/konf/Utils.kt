@@ -17,6 +17,7 @@
 package com.uchuhimo.konf
 
 import java.io.File
+import java.nio.file.Files
 
 /**
  * Throws [UnsupportedOperationException].
@@ -46,13 +47,13 @@ fun String.notEmptyOr(default: String): String = if (isEmpty()) default else thi
 
 fun String.toLittleCase(): String {
     return if (this.all { it.isUpperCase() }) {
-        this.toLowerCase()
+        this.lowercase()
     } else {
         when (val firstLowerCaseIndex = this.indexOfFirst { it.isLowerCase() }) {
             -1, 0 -> this
-            1 -> this[0].toLowerCase() + this.drop(1)
+            1 -> this[0].lowercaseChar() + this.drop(1)
             else ->
-                this.substring(0, firstLowerCaseIndex - 1).toLowerCase() +
+                this.substring(0, firstLowerCaseIndex - 1).lowercase() +
                     this.substring(firstLowerCaseIndex - 1)
         }
     }
@@ -125,9 +126,20 @@ fun tempDirectory(
     suffix: String? = null,
     directory: File? = null
 ): File {
-    return createTempDir(prefix, suffix, directory)
+    val name = prefix + suffix.orEmpty()
+    val path = if (directory != null) {
+        Files.createTempDirectory(directory.toPath(), name)
+    } else {
+        Files.createTempDirectory(name)
+    }
+    return path.toFile()
 }
 
 fun tempFile(prefix: String = "tmp", suffix: String? = null, directory: File? = null): File {
-    return createTempFile(prefix, suffix, directory)
+    val path = if (directory != null) {
+        Files.createTempFile(directory.toPath(), prefix, suffix)
+    } else {
+        Files.createTempFile(prefix, suffix)
+    }
+    return path.toFile()
 }
