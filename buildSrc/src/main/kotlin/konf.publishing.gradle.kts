@@ -66,6 +66,16 @@ publishing {
         }
     }
     repositories {
+        // GitHub Packages; credentials come from the githubPackagesUsername / githubPackagesPassword
+        // Gradle properties (ORG_GRADLE_PROJECT_* in CI). Registered only when they are provided.
+        if (providers.gradleProperty("githubPackagesUsername").isPresent) {
+            val githubRepository = providers.environmentVariable("GITHUB_REPOSITORY").getOrElse("Phyrone/konf")
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/$githubRepository")
+                credentials(PasswordCredentials::class)
+            }
+        }
         if (repositoryUrl.get().isNotEmpty()) {
             maven {
                 url = uri(repositoryUrl.get())

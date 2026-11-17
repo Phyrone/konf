@@ -5,7 +5,8 @@ plugins {
 
 allprojects {
     group = "de.phyrone"
-    version = "1.2.6"
+    // Development version; CI overrides it with -Pkonf.version=<tag> for releases.
+    version = providers.gradleProperty("konf.version").get()
 }
 
 tasks.wrapper {
