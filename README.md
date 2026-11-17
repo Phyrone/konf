@@ -1,16 +1,18 @@
-this is a fork of https://github.com/uchuhimo/konf as the original project appears to be abandoned/inactive.
-I merged the open pull requests and fixed some bugs.
 # Konf
 
-[![Java 21+](https://img.shields.io/badge/Java-21+-4c7e9f.svg)](http://java.oracle.com)
-[![Maven metadata URL](https://img.shields.io/maven-central/v/com.uchuhimo/konf)](https://search.maven.org/artifact/com.uchuhimo/konf)
-[![JitPack](https://img.shields.io/jitpack/v/github/uchuhimo/konf)](https://jitpack.io/#uchuhimo/konf)
-[![Build Status](https://travis-ci.org/uchuhimo/konf.svg?branch=master)](https://travis-ci.org/uchuhimo/konf)
-[![codecov](https://codecov.io/gh/uchuhimo/konf/branch/master/graph/badge.svg)](https://codecov.io/gh/uchuhimo/konf)
-[![codebeat badge](https://codebeat.co/badges/f69a1574-9d4c-4da5-be73-56fa7b180d2d)](https://codebeat.co/projects/github-com-uchuhimo-konf-master)
+[![Java 21+](https://img.shields.io/badge/Java-21+-4c7e9f.svg)](https://adoptium.net)
+[![CI](https://github.com/Phyrone/konf/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Phyrone/konf/actions/workflows/ci.yml)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-de.phyrone%3Akonf-blue?logo=github)](https://github.com/Phyrone/konf/packages)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
 
 A type-safe cascading configuration library for Kotlin/Java/Android, supporting most configuration formats.
+
+> [!NOTE]
+> This is a maintained fork of [uchuhimo/konf](https://github.com/uchuhimo/konf), as the original project appears to be abandoned.
+> The open upstream pull requests have been merged and several bugs fixed.
+> Artifacts are published under the `de.phyrone` group to [GitHub Packages](https://github.com/Phyrone/konf/packages);
+> the Kotlin/Java packages are still `com.uchuhimo.konf`, so migrating only requires changing the dependency coordinates.
 
 ## Features
 
@@ -21,8 +23,10 @@ A type-safe cascading configuration library for Kotlin/Java/Android, supporting 
 - **Self-documenting**. Document config item with type, default value and description when declaring.
 - **Extensible**. Easy to customize new sources for config or expose items in config.
 
-### Features if this Fork
+### Features of this fork
+
 - **Commented**. Comment config items when declaring.
+- **Up to date**. Built for Java 21+ with current Kotlin and dependency versions.
 
 ## Contents
 
@@ -31,12 +35,11 @@ A type-safe cascading configuration library for Kotlin/Java/Android, supporting 
   - [Contents](#contents)
   - [Prerequisites](#prerequisites)
   - [Use in your projects](#use-in-your-projects)
-    - [Maven](#maven)
-    - [Gradle](#gradle)
+    - [Authenticating to GitHub Packages](#authenticating-to-github-packages)
     - [Gradle Kotlin DSL](#gradle-kotlin-dsl)
-    - [Maven (master snapshot)](#maven-master-snapshot)
-    - [Gradle (master snapshot)](#gradle-master-snapshot)
-    - [Gradle Kotlin DSL (master snapshot)](#gradle-kotlin-dsl-master-snapshot)
+    - [Gradle (Groovy DSL)](#gradle-groovy-dsl)
+    - [Maven](#maven)
+    - [Migrating from `com.uchuhimo:konf`](#migrating-from-comuchuhimokonf)
   - [Quick start](#quick-start)
   - [Define items](#define-items)
   - [Use config](#use-config)
@@ -72,7 +75,10 @@ A type-safe cascading configuration library for Kotlin/Java/Android, supporting 
 
 ## Use in your projects
 
-This library has been published to [Maven Central](https://search.maven.org/artifact/com.uchuhimo/konf) and [JitPack](https://jitpack.io/#uchuhimo/konf).
+This fork is published to [GitHub Packages](https://github.com/Phyrone/konf/packages) under the group `de.phyrone`:
+
+- Releases are published from `vX.Y.Z` tags, e.g. `de.phyrone:konf:1.2.7`.
+- Every push to `master` publishes a snapshot of the next version, currently `1.2.7-SNAPSHOT`.
 
 Konf is modular, you can use different modules for different sources:
 
@@ -85,80 +91,110 @@ Konf is modular, you can use different modules for different sources:
 - `konf`: for all sources mentioned above
 - `konf-js`: for built-in + JavaScript (use GraalVM JavaScript) sources
 
-### Maven
+The repository URL is `https://maven.pkg.github.com/phyrone/konf`.
 
-```xml
-<dependency>
-  <groupId>com.uchuhimo</groupId>
-  <artifactId>konf</artifactId>
-  <version>1.1.2</version>
-</dependency>
+### Authenticating to GitHub Packages
+
+GitHub Packages requires authentication even for public packages. Create a
+[personal access token (classic)](https://github.com/settings/tokens) with the `read:packages` scope
+and make it available to your build. In GitHub Actions, the workflow's `GITHUB_TOKEN` works
+when the job has `packages: read` permission.
+
+For Gradle, put the credentials in `~/.gradle/gradle.properties` (never commit them):
+
+```properties
+githubPackagesUsername=<your GitHub username>
+githubPackagesPassword=<your token>
 ```
 
-### Gradle
-
-```groovy
-compile 'com.uchuhimo:konf:1.1.2'
-```
+or pass them as the environment variables `ORG_GRADLE_PROJECT_githubPackagesUsername` / `ORG_GRADLE_PROJECT_githubPackagesPassword`.
 
 ### Gradle Kotlin DSL
 
 ```kotlin
-compile(group = "com.uchuhimo", name = "konf", version = "1.1.2")
+repositories {
+    mavenCentral()
+    maven("https://maven.pkg.github.com/phyrone/konf") {
+        name = "githubPackages"
+        // Reads githubPackagesUsername / githubPackagesPassword from Gradle properties
+        credentials(PasswordCredentials::class)
+    }
+}
+
+dependencies {
+    implementation("de.phyrone:konf:1.2.7-SNAPSHOT")
+    // or only the modules you need, e.g.
+    // implementation("de.phyrone:konf-yaml:1.2.7-SNAPSHOT")
+}
 ```
 
-### Maven (master snapshot)
+### Gradle (Groovy DSL)
 
-Add JitPack repository to `<repositories>` section:
+```groovy
+repositories {
+    mavenCentral()
+    maven {
+        name = 'githubPackages'
+        url = 'https://maven.pkg.github.com/phyrone/konf'
+        // Reads githubPackagesUsername / githubPackagesPassword from Gradle properties
+        credentials(PasswordCredentials)
+    }
+}
 
-```xml
-<repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
-</repository>
+dependencies {
+    implementation 'de.phyrone:konf:1.2.7-SNAPSHOT'
+}
 ```
 
-Add dependencies:
+### Maven
+
+Add the credentials to `~/.m2/settings.xml`:
 
 ```xml
-<dependency>
-    <groupId>com.github.uchuhimo</groupId>
+<settings>
+  <servers>
+    <server>
+      <id>github-konf</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_TOKEN</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Add the repository (the `<id>` must match the server above) and the dependency to your `pom.xml`:
+
+```xml
+<repositories>
+  <repository>
+    <id>github-konf</id>
+    <url>https://maven.pkg.github.com/phyrone/konf</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>de.phyrone</groupId>
     <artifactId>konf</artifactId>
-    <version>master-SNAPSHOT</version>
-</dependency>
+    <version>1.2.7-SNAPSHOT</version>
+  </dependency>
+</dependencies>
 ```
 
-### Gradle (master snapshot)
+### Migrating from `com.uchuhimo:konf`
 
-Add JitPack repository:
+Only the coordinates change; the code stays the same:
 
-```groovy
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-```
+| Upstream                       | This fork                   |
+|--------------------------------|-----------------------------|
+| `com.uchuhimo:konf:1.1.2`      | `de.phyrone:konf:<version>` |
+| `com.uchuhimo:konf-core:1.1.2` | `de.phyrone:konf-core:<version>` |
+| `com.github.uchuhimo.konf:konf:master-SNAPSHOT` (JitPack) | `de.phyrone:konf:1.2.7-SNAPSHOT` |
 
-Add dependencies:
-
-```groovy
-compile 'com.github.uchuhimo.konf:konf:master-SNAPSHOT'
-```
-
-### Gradle Kotlin DSL (master snapshot)
-
-Add JitPack repository:
-
-```kotlin
-repositories {
-    maven(url = "https://jitpack.io")
-}
-```
-
-Add dependencies:
-
-```kotlin
-compile(group = "com.github.uchuhimo.konf", name = "konf", version = "master-SNAPSHOT")
-```
+Imports such as `com.uchuhimo.konf.Config` are unchanged.
 
 ## Quick start
 
@@ -841,11 +877,13 @@ Test library with Gradle using the following command:
 
 Since Gradle has excellent incremental build support, you can usually omit executing the `clean` task.
 
-Install library in a local Maven repository for consumption in other projects via the following command:
+Install library in a local Maven repository (`~/.m2/repository`) for consumption in other projects via the following command:
 
 ```
-./gradlew clean install
+./gradlew install
 ```
+
+It publishes `de.phyrone:*:1.2.7-SNAPSHOT`; add `mavenLocal()` to your project's repositories to use it.
 
 ## Breaking Changes
 
@@ -877,4 +915,4 @@ APIs in `ConfigSpec` have been updated to support item name's auto-detection, pl
 
 # License
 
-© uchuhimo, 2017-2019. Licensed under an [Apache 2.0](./LICENSE) license.
+© uchuhimo, 2017-2019, and the contributors of this fork. Licensed under an [Apache 2.0](./LICENSE) license.
