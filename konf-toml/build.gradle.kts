@@ -1,6 +1,10 @@
+plugins {
+    id("konf.kotlin-library")
+}
+
 dependencies {
     api(project(":konf-core"))
-    implementation("com.moandjiezana.toml", "toml4j", Versions.toml4j)
+    implementation(libs.toml4j)
 
     testImplementation(testFixtures(project(":konf-core")))
 }

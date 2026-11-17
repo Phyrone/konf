@@ -1,7 +1,11 @@
+plugins {
+    id("konf.kotlin-library")
+}
+
 dependencies {
     api(project(":konf-core"))
-    implementation("org.dom4j", "dom4j", Versions.dom4j)
-    implementation("jaxen", "jaxen", Versions.jaxen)
+    implementation(libs.dom4j)
+    implementation(libs.jaxen)
 
     testImplementation(testFixtures(project(":konf-core")))
 }

@@ -86,9 +86,13 @@ object BothConfigSpec : SubjectSpek<Config>({
     }
 })
 
-class UpdateFallbackConfig(val config: MergedConfig) : MergedConfig(config.facade, config.fallback) {
-
-    override fun rawSet(item: Item<*>, value: Any?) {
+class UpdateFallbackConfig(
+    val config: MergedConfig,
+) : MergedConfig(config.facade, config.fallback) {
+    override fun rawSet(
+        item: Item<*>,
+        value: Any?,
+    ) {
         if (item is LazyItem) {
             facade.rawSet(item, value)
         } else {
@@ -100,7 +104,10 @@ class UpdateFallbackConfig(val config: MergedConfig) : MergedConfig(config.facad
         fallback.unset(item)
     }
 
-    override fun addItem(item: Item<*>, prefix: String) {
+    override fun addItem(
+        item: Item<*>,
+        prefix: String,
+    ) {
         fallback.addItem(item, prefix)
     }
 

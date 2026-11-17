@@ -17,6 +17,7 @@
 package com.uchuhimo.konf
 
 import java.io.File
+import java.nio.file.Files
 
 /**
  * Throws [UnsupportedOperationException].
@@ -24,16 +25,15 @@ import java.io.File
  * @throws UnsupportedOperationException
  */
 @Suppress("NOTHING_TO_INLINE")
-inline fun unsupported(): Nothing {
-    throw UnsupportedOperationException()
-}
+inline fun unsupported(): Nothing = throw UnsupportedOperationException()
 
 internal fun getUnits(s: String): String {
     var i = s.length - 1
     while (i >= 0) {
         val c = s[i]
-        if (!c.isLetter())
+        if (!c.isLetter()) {
             break
+        }
         i -= 1
     }
     return s.substring(i + 1)
@@ -44,19 +44,25 @@ internal fun getUnits(s: String): String {
  */
 fun String.notEmptyOr(default: String): String = if (isEmpty()) default else this
 
-fun String.toLittleCase(): String {
-    return if (this.all { it.isUpperCase() }) {
-        this.toLowerCase()
+fun String.toLittleCase(): String =
+    if (this.all { it.isUpperCase() }) {
+        this.lowercase()
     } else {
         when (val firstLowerCaseIndex = this.indexOfFirst { it.isLowerCase() }) {
-            -1, 0 -> this
-            1 -> this[0].toLowerCase() + this.drop(1)
-            else ->
-                this.substring(0, firstLowerCaseIndex - 1).toLowerCase() +
+            -1, 0 -> {
+                this
+            }
+
+            1 -> {
+                this[0].lowercaseChar() + this.drop(1)
+            }
+
+            else -> {
+                this.substring(0, firstLowerCaseIndex - 1).lowercase() +
                     this.substring(firstLowerCaseIndex - 1)
+            }
         }
     }
-}
 
 /**
  * Modified implementation from [org.apache.commons.text.CaseUtils.toCamelCase].
@@ -82,6 +88,7 @@ fun String.toCamelCase(): String {
                 previousIsUppercase = false
                 index += Character.charCount(codePoint)
             }
+
             capitalizeNext -> {
                 val upperCaseCodePoint = Character.toUpperCase(codePoint)
                 newCodePoints[outOffset++] = upperCaseCodePoint
@@ -89,6 +96,7 @@ fun String.toCamelCase(): String {
                 capitalizeNext = false
                 lowercaseNext = true
             }
+
             lowercaseNext -> {
                 val lowerCaseCodePoint = Character.toLowerCase(codePoint)
                 newCodePoints[outOffset++] = lowerCaseCodePoint
@@ -105,6 +113,7 @@ fun String.toCamelCase(): String {
                     previousIsUppercase = true
                 }
             }
+
             else -> {
                 newCodePoints[outOffset++] = codePoint
                 index += Character.charCount(codePoint)
@@ -113,21 +122,38 @@ fun String.toCamelCase(): String {
     }
     return if (outOffset != 0) {
         String(newCodePoints, 0, outOffset)
-    } else this
+    } else {
+        this
+    }
 }
 
-fun String.toLittleCamelCase(): String {
-    return this.toCamelCase().toLittleCase()
-}
+fun String.toLittleCamelCase(): String = this.toCamelCase().toLittleCase()
 
 fun tempDirectory(
     prefix: String = "tmp",
     suffix: String? = null,
-    directory: File? = null
+    directory: File? = null,
 ): File {
-    return createTempDir(prefix, suffix, directory)
+    val name = prefix + suffix.orEmpty()
+    val path =
+        if (directory != null) {
+            Files.createTempDirectory(directory.toPath(), name)
+        } else {
+            Files.createTempDirectory(name)
+        }
+    return path.toFile()
 }
 
-fun tempFile(prefix: String = "tmp", suffix: String? = null, directory: File? = null): File {
-    return createTempFile(prefix, suffix, directory)
+fun tempFile(
+    prefix: String = "tmp",
+    suffix: String? = null,
+    directory: File? = null,
+): File {
+    val path =
+        if (directory != null) {
+            Files.createTempFile(directory.toPath(), prefix, suffix)
+        } else {
+            Files.createTempFile(prefix, suffix)
+        }
+    return path.toFile()
 }

@@ -1,9 +1,12 @@
-sourceSets {
-    register("snippet")
+plugins {
+    id("konf.kotlin-library")
 }
 
-val snippetImplementation by configurations
-snippetImplementation.extendsFrom(configurations.implementation.get())
+val snippet = sourceSets.create("snippet")
+
+configurations.named(snippet.implementationConfigurationName) {
+    extendsFrom(configurations.implementation.get())
+}
 
 dependencies {
     for (name in listOf(
@@ -12,13 +15,12 @@ dependencies {
         ":konf-hocon",
         ":konf-toml",
         ":konf-xml",
-        ":konf-yaml"
+        ":konf-yaml",
     )) {
         api(project(name))
         testImplementation(testFixtures(project(name)))
     }
 
-    snippetImplementation(sourceSets.main.get().output)
-    val snippet by sourceSets
+    snippet.implementationConfigurationName(sourceSets.main.get().output)
     testImplementation(snippet.output)
 }

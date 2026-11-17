@@ -1,21 +1,30 @@
 name: Konf CI
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   build:
     name: Build on JDK ${{ matrix.java_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        java_version: [11, 16, 18]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        java_version: [21, 25]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK ${{ matrix.java_version }}
-      uses: actions/setup-java@v1
-      with:
-        java-version: ${{ matrix.java_version }}
-    - name: Build with Gradle
-      run: ./gradlew build
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # JDK 21 is the compile toolchain; the matrix JDK runs Gradle.
+          java-version: |
+            21
+            ${{ matrix.java_version }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build with Gradle
+        run: ./gradlew build

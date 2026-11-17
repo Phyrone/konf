@@ -16,7 +16,9 @@
 
 package com.uchuhimo.konf
 
-class AdHocNetworkBuffer(config: Config) {
+class AdHocNetworkBuffer(
+    config: Config,
+) {
     private val root = config.at("network.buffer")
 
     val size: Int by root.required(description = "size of buffer in KB")
@@ -29,18 +31,19 @@ class AdHocNetworkBuffer(config: Config) {
         Type.OFF_HEAP,
         prefix = "heap",
         description =
-        """
+            """
             | type of network buffer.
             | two type:
             | - on-heap
             | - off-heap
             | buffer is off-heap by default.
-            """.trimMargin("| ")
+            """.trimMargin("| "),
     )
 
     val offset by root.optional<Int?>(null, description = "initial offset of buffer")
 
     enum class Type {
-        ON_HEAP, OFF_HEAP
+        ON_HEAP,
+        OFF_HEAP,
     }
 }

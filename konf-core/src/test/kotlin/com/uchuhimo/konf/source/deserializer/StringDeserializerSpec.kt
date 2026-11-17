@@ -29,9 +29,10 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 
 object StringDeserializerSpec : Spek({
-    val spec = object : ConfigSpec() {
-        val item by required<StringWrapper>()
-    }
+    val spec =
+        object : ConfigSpec() {
+            val item by required<StringWrapper>()
+        }
     val config by memoized {
         Config {
             addSpec(spec)
@@ -47,13 +48,16 @@ object StringDeserializerSpec : Spek({
             }
         }
         on("deserialize string containing commas when UNWRAP_SINGLE_VALUE_ARRAYS is enable") {
-            config.apply {
-                mapper.enable(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
-            }.from.map.kv(mapOf("item" to mapOf("string" to "a,b,c"))).apply {
-                it("should succeed") {
-                    assertThat(this@apply[spec.item].string, equalTo("a,b,c"))
+            config
+                .apply {
+                    mapper.enable(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
+                }.from.map
+                .kv(mapOf("item" to mapOf("string" to "a,b,c")))
+                .apply {
+                    it("should succeed") {
+                        assertThat(this@apply[spec.item].string, equalTo("a,b,c"))
+                    }
                 }
-            }
         }
         on("deserialize string from number") {
             config.from.map.kv(mapOf("item" to mapOf("string" to 1))).apply {
@@ -70,24 +74,31 @@ object StringDeserializerSpec : Spek({
             }
         }
         on("deserialize string from single value array") {
-            config.apply {
-                mapper.enable(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
-            }.from.map.kv(mapOf("item" to mapOf("string" to listOf("a")))).apply {
-                it("should succeed") {
-                    assertThat(this@apply[spec.item].string, equalTo("a"))
+            config
+                .apply {
+                    mapper.enable(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
+                }.from.map
+                .kv(mapOf("item" to mapOf("string" to listOf("a"))))
+                .apply {
+                    it("should succeed") {
+                        assertThat(this@apply[spec.item].string, equalTo("a"))
+                    }
                 }
-            }
         }
         on("deserialize string from empty array") {
             it("should throw LoadException caused by ObjectMappingException") {
                 assertCausedBy<ObjectMappingException> {
-                    config.apply {
-                        mapper.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)
-                    }.from.map.kv(mapOf("item" to mapOf("string" to listOf<String>())))
+                    config
+                        .apply {
+                            mapper.enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)
+                        }.from.map
+                        .kv(mapOf("item" to mapOf("string" to listOf<String>())))
                 }
             }
         }
     }
 })
 
-private data class StringWrapper(val string: String)
+private data class StringWrapper(
+    val string: String,
+)

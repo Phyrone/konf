@@ -25,11 +25,14 @@ import java.util.regex.Pattern
 /**
  * Writer for JavaScript source.
  */
-class JsWriter(val config: Config) : Writer {
+class JsWriter(
+    val config: Config,
+) : Writer {
     override fun toWriter(writer: java.io.Writer) {
-        val jsonOutput = config.mapper
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(config.toHierarchicalMap())
+        val jsonOutput =
+            config.mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(config.toHierarchicalMap())
         val pattern = Pattern.compile("(\")(.*)(\"\\s*):")
         val jsOutput = pattern.matcher(jsonOutput).replaceAll("$2:")
         writer.write("($jsOutput)")

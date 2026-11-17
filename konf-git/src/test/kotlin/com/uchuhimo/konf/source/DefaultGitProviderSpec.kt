@@ -34,18 +34,25 @@ object DefaultGitProviderSpec : SubjectSpek<DefaultProviders>({
     given("a provider") {
         on("provider source from git repository") {
             tempDirectory().let { dir ->
-                Git.init().apply {
-                    setDirectory(dir)
-                }.call().use { git ->
-                    Paths.get(dir.path, "source.properties").toFile().writeText(propertiesContent)
-                    git.add().apply {
-                        addFilepattern("source.properties")
+                Git
+                    .init()
+                    .apply {
+                        setDirectory(dir)
                     }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "init commit"
-                    }.call()
-                }
+                    .use { git ->
+                        Paths.get(dir.path, "source.properties").toFile().writeText(propertiesContent)
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("source.properties")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "init commit"
+                            }.call()
+                    }
                 val repo = dir.toURI()
                 val config = subject.git(repo.toString(), "source.properties").toConfig()
                 it("should provide as auto-detected file format") {

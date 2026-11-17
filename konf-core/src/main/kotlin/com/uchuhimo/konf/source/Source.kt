@@ -115,9 +115,11 @@ interface Source {
      * Description of this source.
      */
     val description: String
-        get() = this.info.map { (name, value) ->
-            "$name: $value"
-        }.joinToString(separator = ", ", prefix = "[", postfix = "]")
+        get() =
+            this.info
+                .map { (name, value) ->
+                    "$name: $value"
+                }.joinToString(separator = ", ", prefix = "[", postfix = "]")
 
     /**
      * Information about this source.
@@ -152,18 +154,20 @@ interface Source {
      * @return sub-source in specified path if this source contains value(s) in specified path,
      * `null` otherwise
      */
-    fun getOrNull(path: Path): Source? {
-        return if (path.isEmpty()) {
+    fun getOrNull(path: Path): Source? =
+        if (path.isEmpty()) {
             this
         } else {
             getTreeOrNull(tree, normalizedPath(path))?.let {
                 Source(info = info, tree = it, features = features)
             }
         }
-    }
 
-    private fun getTreeOrNull(tree: TreeNode, path: Path): TreeNode? {
-        return if (path.isEmpty()) {
+    private fun getTreeOrNull(
+        tree: TreeNode,
+        path: Path,
+    ): TreeNode? =
+        if (path.isEmpty()) {
             tree
         } else {
             val key = normalizedKey(path.first())
@@ -177,7 +181,6 @@ interface Source {
             }
             result?.let { getTreeOrNull(it, rest) }
         }
-    }
 
     private fun normalizedKey(key: String): String {
         var currentKey = key
@@ -185,25 +188,31 @@ interface Source {
             currentKey = currentKey.toLittleCamelCase()
         }
         if (isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY)) {
-            currentKey = currentKey.toLowerCase()
+            currentKey = currentKey.lowercase()
         }
         return currentKey
     }
 
-    private fun normalizedPath(path: Path, lowercased: Boolean = false, littleCamelCased: Boolean = true): Path {
+    private fun normalizedPath(
+        path: Path,
+        lowercased: Boolean = false,
+        littleCamelCased: Boolean = true,
+    ): Path {
         var currentPath = path
         if (littleCamelCased && isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)) {
             currentPath = currentPath.map { it.toLittleCamelCase() }
         }
         if (lowercased || isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY)) {
-            currentPath = currentPath.map { it.toLowerCase() }
+            currentPath = currentPath.map { it.lowercase() }
         }
         return currentPath
     }
 
-    fun getNodeOrNull(path: Path, lowercased: Boolean = false, littleCamelCased: Boolean = true): TreeNode? {
-        return tree.getOrNull(normalizedPath(path, lowercased, littleCamelCased))
-    }
+    fun getNodeOrNull(
+        path: Path,
+        lowercased: Boolean = false,
+        littleCamelCased: Boolean = true,
+    ): TreeNode? = tree.getOrNull(normalizedPath(path, lowercased, littleCamelCased))
 
     /**
      * Returns sub-source in specified path.
@@ -251,8 +260,8 @@ interface Source {
      * @param prefix additional prefix
      * @return source with specified additional prefix
      */
-    fun withPrefix(prefix: Path): Source {
-        return if (prefix.isEmpty()) {
+    fun withPrefix(prefix: Path): Source =
+        if (prefix.isEmpty()) {
             this
         } else {
             var prefixedTree = tree
@@ -262,10 +271,9 @@ interface Source {
             Source(
                 info = this@Source.info,
                 tree = prefixedTree,
-                features = features
+                features = features,
             )
         }
-    }
 
     /**
      * Returns source with specified additional prefix.
@@ -310,31 +318,35 @@ interface Source {
      * @return a source that substitutes path variables within all strings by values
      * @throws UndefinedPathVariableException
      */
-    fun substituted(root: Source = this, enabled: Boolean = true, errorWhenUndefined: Boolean = true): Source {
-        return if (!enabled || !this.isEnabled(Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED)) {
+    fun substituted(
+        root: Source = this,
+        enabled: Boolean = true,
+        errorWhenUndefined: Boolean = true,
+    ): Source =
+        if (!enabled || !this.isEnabled(Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED)) {
             this
         } else {
             Source(info, tree.substituted(root, errorWhenUndefined), features)
         }
-    }
 
-    fun lowercased(enabled: Boolean = false): Source {
-        return if (enabled || this.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY)) {
+    fun lowercased(enabled: Boolean = false): Source =
+        if (enabled || this.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY)) {
             Source(info, tree.lowercased(), features)
         } else {
             this
         }
-    }
 
-    fun littleCamelCased(enabled: Boolean = true): Source {
-        return if (!enabled || !this.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)) {
+    fun littleCamelCased(enabled: Boolean = true): Source =
+        if (!enabled || !this.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)) {
             this
         } else {
             Source(info, tree.littleCamelCased(), features)
         }
-    }
 
-    fun normalized(lowercased: Boolean = false, littleCamelCased: Boolean = true): Source {
+    fun normalized(
+        lowercased: Boolean = false,
+        littleCamelCased: Boolean = true,
+    ): Source {
         var currentSource = this
         currentSource = currentSource.littleCamelCased(littleCamelCased)
         currentSource = currentSource.lowercased(lowercased)
@@ -347,11 +359,12 @@ interface Source {
      * @param feature the specified feature
      * @return a new source
      */
-    fun enabled(feature: Feature): Source = Source(
-        info,
-        tree,
-        MergedMap(Collections.unmodifiableMap(features), mutableMapOf(feature to true))
-    )
+    fun enabled(feature: Feature): Source =
+        Source(
+            info,
+            tree,
+            MergedMap(Collections.unmodifiableMap(features), mutableMapOf(feature to true)),
+        )
 
     /**
      * Returns a new source that disables the specified feature.
@@ -359,11 +372,12 @@ interface Source {
      * @param feature the specified feature
      * @return a new source
      */
-    fun disabled(feature: Feature): Source = Source(
-        info,
-        tree,
-        MergedMap(Collections.unmodifiableMap(features), mutableMapOf(feature to false))
-    )
+    fun disabled(feature: Feature): Source =
+        Source(
+            info,
+            tree,
+            MergedMap(Collections.unmodifiableMap(features), mutableMapOf(feature to false)),
+        )
 
     /**
      * Check whether the specified feature is enabled or not.
@@ -377,10 +391,8 @@ interface Source {
         operator fun invoke(
             info: SourceInfo = SourceInfo(),
             tree: TreeNode = ContainerNode.empty(),
-            features: Map<Feature, Boolean> = emptyMap()
-        ): Source {
-            return BaseSource(info, tree, features)
-        }
+            features: Map<Feature, Boolean> = emptyMap(),
+        ): Source = BaseSource(info, tree, features)
 
         /**
          * Returns default providers.
@@ -407,19 +419,20 @@ interface Source {
  *
  * @return a value casted from source
  */
-inline fun <reified T> Source.toValue(): T {
-    return Config().withSource(this).toValue()
-}
+inline fun <reified T> Source.toValue(): T = Config().withSource(this).toValue()
 
 private val singleVariablePattern = Pattern.compile("^\\$\\{(.+)}$")
 
 private fun TreeNode.substituted(
     source: Source,
     errorWhenUndefined: Boolean,
-    lookup: TreeLookup = TreeLookup(source.tree, source, errorWhenUndefined)
+    lookup: TreeLookup = TreeLookup(source.tree, source, errorWhenUndefined),
 ): TreeNode {
     when (this) {
-        is NullNode -> return this
+        is NullNode -> {
+            return this
+        }
+
         is ValueNode -> {
             if (this is SubstitutableNode && value is String) {
                 val text = (if (substituted) originalValue else value) as String
@@ -444,28 +457,34 @@ private fun TreeNode.substituted(
                 return this
             }
         }
+
         is ListNode -> {
             return withList(list.map { it.substituted(source, errorWhenUndefined, lookup) })
         }
+
         is MapNode -> {
             return withMap(
                 children.mapValues { (_, child) ->
                     child.substituted(source, errorWhenUndefined, lookup)
-                }
+                },
             )
         }
-        else -> throw UnsupportedNodeTypeException(source, this)
+
+        else -> {
+            throw UnsupportedNodeTypeException(source, this)
+        }
     }
 }
 
 private fun TreeNode.lowercased(): TreeNode {
     if (this is ContainerNode) {
         return withMap(
-            children.mapKeys { (key, _) ->
-                key.toLowerCase()
-            }.mapValues { (_, child) ->
-                child.lowercased()
-            }
+            children
+                .mapKeys { (key, _) ->
+                    key.lowercase()
+                }.mapValues { (_, child) ->
+                    child.lowercased()
+                },
         )
     } else {
         return this
@@ -475,36 +494,43 @@ private fun TreeNode.lowercased(): TreeNode {
 private fun TreeNode.littleCamelCased(): TreeNode {
     if (this is ContainerNode) {
         return withMap(
-            children.mapKeys { (key, _) ->
-                key.toLittleCamelCase()
-            }.mapValues { (_, child) ->
-                child.littleCamelCased()
-            }
+            children
+                .mapKeys { (key, _) ->
+                    key.toLittleCamelCase()
+                }.mapValues { (_, child) ->
+                    child.littleCamelCased()
+                },
         )
     } else {
         return this
     }
 }
 
-class TreeLookup(val root: TreeNode, val source: Source, errorWhenUndefined: Boolean) : StringLookup {
-    val substitutor: StringSubstitutor = StringSubstitutor(
-        StringLookupFactory.INSTANCE.interpolatorStringLookup(this)
-    ).apply {
-        isEnableSubstitutionInVariables = true
-        isEnableUndefinedVariableException = errorWhenUndefined
-    }
+class TreeLookup(
+    val root: TreeNode,
+    val source: Source,
+    errorWhenUndefined: Boolean,
+) : StringLookup {
+    val substitutor: StringSubstitutor =
+        StringSubstitutor(
+            StringLookupFactory.INSTANCE.interpolatorStringLookup(this),
+        ).apply {
+            isEnableSubstitutionInVariables = true
+            isEnableUndefinedVariableException = errorWhenUndefined
+        }
 
     override fun lookup(key: String): String? {
         val node = root.getOrNull(key)
         if (node != null && node is ValueNode) {
-            if (node.value::class in listOf(
+            if (node.value::class in
+                listOf(
                     String::class,
                     Char::class,
                     Byte::class,
                     Short::class,
                     Int::class,
                     Long::class,
-                    BigInteger::class
+                    BigInteger::class,
                 )
             ) {
                 val value = node.value.toString()
@@ -513,7 +539,7 @@ class TreeLookup(val root: TreeNode, val source: Source, errorWhenUndefined: Boo
                 throw WrongTypeException(
                     "${node.value} in ${source.description}",
                     node.value::class.java.simpleName,
-                    "String"
+                    "String",
                 )
             }
         } else {
@@ -521,50 +547,47 @@ class TreeLookup(val root: TreeNode, val source: Source, errorWhenUndefined: Boo
         }
     }
 
-    fun replace(text: String): String {
-        return substitutor.replace(text)
-    }
+    fun replace(text: String): String = substitutor.replace(text)
 }
 
 open class BaseSource(
     override val info: SourceInfo = SourceInfo(),
     override val tree: TreeNode = ContainerNode.empty(),
-    override val features: Map<Feature, Boolean> = emptyMap()
+    override val features: Map<Feature, Boolean> = emptyMap(),
 ) : Source
 
 /**
  * Information of source for debugging.
  */
 class SourceInfo(
-    private val info: MutableMap<String, String> = mutableMapOf()
+    private val info: MutableMap<String, String> = mutableMapOf(),
 ) : MutableMap<String, String> by info {
     constructor(vararg pairs: Pair<String, String>) : this(mutableMapOf(*pairs))
 
-    fun with(vararg pairs: Pair<String, String>): SourceInfo {
-        return SourceInfo(MergedMap(fallback = this, facade = mutableMapOf(*pairs)))
-    }
+    fun with(vararg pairs: Pair<String, String>): SourceInfo = SourceInfo(MergedMap(fallback = this, facade = mutableMapOf(*pairs)))
 
-    fun with(sourceInfo: SourceInfo): SourceInfo {
-        return SourceInfo(MergedMap(fallback = this, facade = sourceInfo.toMutableMap()))
-    }
+    fun with(sourceInfo: SourceInfo): SourceInfo = SourceInfo(MergedMap(fallback = this, facade = sourceInfo.toMutableMap()))
 }
 
-inline fun <reified T> Source.asValue(): T {
-    return tree.asValueOf(this, T::class.java) as T
-}
+inline fun <reified T> Source.asValue(): T = tree.asValueOf(this, T::class.java) as T
 
-fun TreeNode.asValueOf(source: Source, type: Class<*>): Any {
-    return castOrNull(source, type)
+fun TreeNode.asValueOf(
+    source: Source,
+    type: Class<*>,
+): Any =
+    castOrNull(source, type)
         ?: throw WrongTypeException(
-            if (this is ValueNode) "${this.value} in ${source.description}"
-            else "$this in ${source.description}",
+            if (this is ValueNode) {
+                "${this.value} in ${source.description}"
+            } else {
+                "$this in ${source.description}"
+            },
             if (this is ValueNode) this.value::class.java.simpleName else "Unknown",
-            type.simpleName
+            type.simpleName,
         )
-}
 
-internal fun Any?.toCompatibleValue(mapper: ObjectMapper): Any {
-    return when (this) {
+internal fun Any?.toCompatibleValue(mapper: ObjectMapper): Any =
+    when (this) {
         is OffsetTime,
         is OffsetDateTime,
         is ZonedDateTime,
@@ -574,23 +597,75 @@ internal fun Any?.toCompatibleValue(mapper: ObjectMapper): Any {
         is Year,
         is YearMonth,
         is Instant,
-        is Duration -> this.toString()
-        is Date -> this.toInstant().toString()
-        is SizeInBytes -> this.bytes.toString()
-        is Enum<*> -> this.name
-        is ByteArray -> this.toList()
-        is CharArray -> this.toList().map { it.toString() }
-        is BooleanArray -> this.toList()
-        is IntArray -> this.toList()
-        is ShortArray -> this.toList()
-        is LongArray -> this.toList()
-        is DoubleArray -> this.toList()
-        is FloatArray -> this.toList()
-        is List<*> -> this.map { it!!.toCompatibleValue(mapper) }
-        is Set<*> -> this.map { it!!.toCompatibleValue(mapper) }
-        is Array<*> -> this.map { it!!.toCompatibleValue(mapper) }
-        is Map<*, *> -> this.mapValues { (_, value) -> value.toCompatibleValue(mapper) }
-        is Char -> this.toString()
+        is Duration,
+        -> {
+            this.toString()
+        }
+
+        is Date -> {
+            this.toInstant().toString()
+        }
+
+        is SizeInBytes -> {
+            this.bytes.toString()
+        }
+
+        is Enum<*> -> {
+            this.name
+        }
+
+        is ByteArray -> {
+            this.toList()
+        }
+
+        is CharArray -> {
+            this.toList().map { it.toString() }
+        }
+
+        is BooleanArray -> {
+            this.toList()
+        }
+
+        is IntArray -> {
+            this.toList()
+        }
+
+        is ShortArray -> {
+            this.toList()
+        }
+
+        is LongArray -> {
+            this.toList()
+        }
+
+        is DoubleArray -> {
+            this.toList()
+        }
+
+        is FloatArray -> {
+            this.toList()
+        }
+
+        is List<*> -> {
+            this.map { it!!.toCompatibleValue(mapper) }
+        }
+
+        is Set<*> -> {
+            this.map { it!!.toCompatibleValue(mapper) }
+        }
+
+        is Array<*> -> {
+            this.map { it!!.toCompatibleValue(mapper) }
+        }
+
+        is Map<*, *> -> {
+            this.mapValues { (_, value) -> value.toCompatibleValue(mapper) }
+        }
+
+        is Char -> {
+            this.toString()
+        }
+
         is String,
         is Boolean,
         is Int,
@@ -600,7 +675,11 @@ internal fun Any?.toCompatibleValue(mapper: ObjectMapper): Any {
         is BigInteger,
         is Double,
         is Float,
-        is BigDecimal -> this
+        is BigDecimal,
+        -> {
+            this
+        }
+
         else -> {
             if (this == null) {
                 "null"
@@ -609,21 +688,25 @@ internal fun Any?.toCompatibleValue(mapper: ObjectMapper): Any {
             }
         }
     }
-}
 
-internal fun Config.loadItem(item: Item<*>, path: Path, source: Source): Boolean {
+internal fun Config.loadItem(
+    item: Item<*>,
+    path: Path,
+    source: Source,
+): Boolean {
     try {
-        val itemNode = source.getNodeOrNull(
-            path,
-            lowercased = this.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY),
-            littleCamelCased = this.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)
-        )
+        val itemNode =
+            source.getNodeOrNull(
+                path,
+                lowercased = this.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY),
+                littleCamelCased = this.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE),
+            )
         if (itemNode != null && !itemNode.isPlaceHolderNode()) {
             if (item.nullable &&
                 (
                     (itemNode is NullNode) ||
                         (itemNode is ValueNode && itemNode.value == "null")
-                    )
+                )
             ) {
                 rawSet(item, null)
             } else {
@@ -638,15 +721,20 @@ internal fun Config.loadItem(item: Item<*>, path: Path, source: Source): Boolean
     }
 }
 
-internal fun load(config: Config, source: Source): Source {
+internal fun load(
+    config: Config,
+    source: Source,
+): Source {
     var currentSource = source
-    currentSource = currentSource.normalized(
-        lowercased = config.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY),
-        littleCamelCased = config.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)
-    )
-    currentSource = currentSource.substituted(
-        enabled = config.isEnabled(Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED)
-    )
+    currentSource =
+        currentSource.normalized(
+            lowercased = config.isEnabled(Feature.LOAD_KEYS_CASE_INSENSITIVELY),
+            littleCamelCased = config.isEnabled(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE),
+        )
+    currentSource =
+        currentSource.substituted(
+            enabled = config.isEnabled(Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED),
+        )
     config.lock {
         for (item in config) {
             config.loadItem(item, config.pathOf(item), currentSource)
@@ -677,13 +765,12 @@ private inline fun <reified T> TreeNode.cast(source: Source): T {
     }
 }
 
-internal fun stringToBoolean(value: String): Boolean {
-    return when {
-        value.toLowerCase() == "true" -> true
-        value.toLowerCase() == "false" -> false
+internal fun stringToBoolean(value: String): Boolean =
+    when {
+        value.lowercase() == "true" -> true
+        value.lowercase() == "false" -> false
         else -> throw ParseException("$value cannot be parsed to a boolean")
     }
-}
 
 internal fun shortToByte(value: Short): Byte {
     if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
@@ -721,35 +808,36 @@ private inline fun <T> String.tryParse(block: (String) -> T): T {
     }
 }
 
-internal fun stringToDate(value: String): Date {
-    return try {
+internal fun stringToDate(value: String): Date =
+    try {
         Date.from(value.tryParse { Instant.parse(it) })
     } catch (e: ParseException) {
         try {
             Date.from(
-                value.tryParse {
-                    LocalDateTime.parse(it)
-                }.toInstant(ZoneOffset.UTC)
+                value
+                    .tryParse {
+                        LocalDateTime.parse(it)
+                    }.toInstant(ZoneOffset.UTC),
             )
         } catch (e: ParseException) {
             Date.from(
-                value.tryParse {
-                    LocalDate.parse(it)
-                }.atStartOfDay().toInstant(ZoneOffset.UTC)
+                value
+                    .tryParse {
+                        LocalDate.parse(it)
+                    }.atStartOfDay()
+                    .toInstant(ZoneOffset.UTC),
             )
         }
     }
-}
 
-private fun <In, Out> ((In) -> Out).asPromote(): PromoteFunc<*> {
-    return { value, _ ->
+private fun <In, Out> ((In) -> Out).asPromote(): PromoteFunc<*> =
+    { value, _ ->
         @Suppress("UNCHECKED_CAST")
         this(value as In)
     }
-}
 
-private inline fun <reified T> tryParseAsPromote(noinline block: (String) -> T): PromoteFunc<*> {
-    return { value, _ ->
+private inline fun <reified T> tryParseAsPromote(noinline block: (String) -> T): PromoteFunc<*> =
+    { value, _ ->
         try {
             block(value as String)
         } catch (cause: Exception) {
@@ -760,93 +848,100 @@ private inline fun <reified T> tryParseAsPromote(noinline block: (String) -> T):
             }
         }
     }
-}
 
 typealias PromoteFunc<Out> = (Any, Source) -> Out
 
-private val promoteMap: MutableMap<KClass<*>, List<Pair<KClass<*>, PromoteFunc<*>>>> = mutableMapOf(
-    String::class to listOf(
-        Boolean::class to ::stringToBoolean.asPromote(),
-        Char::class to ::stringToChar.asPromote(),
-
-        Byte::class to tryParseAsPromote { value: String -> value.toByte() },
-        Short::class to tryParseAsPromote { value: String -> value.toShort() },
-        Int::class to tryParseAsPromote { value: String -> value.toInt() },
-        Long::class to tryParseAsPromote { value: String -> value.toLong() },
-        Float::class to tryParseAsPromote { value: String -> value.toFloat() },
-        Double::class to tryParseAsPromote { value: String -> value.toDouble() },
-        BigInteger::class to tryParseAsPromote { value: String -> value.toBigInteger() },
-        BigDecimal::class to tryParseAsPromote { value: String -> value.toBigDecimal() },
-
-        OffsetTime::class to tryParseAsPromote { OffsetTime.parse(it) },
-        OffsetDateTime::class to tryParseAsPromote { OffsetDateTime.parse(it) },
-        ZonedDateTime::class to tryParseAsPromote { ZonedDateTime.parse(it) },
-        LocalDate::class to tryParseAsPromote { LocalDate.parse(it) },
-        LocalTime::class to tryParseAsPromote { LocalTime.parse(it) },
-        LocalDateTime::class to tryParseAsPromote { LocalDateTime.parse(it) },
-        Year::class to tryParseAsPromote { Year.parse(it) },
-        YearMonth::class to tryParseAsPromote { YearMonth.parse(it) },
-        Instant::class to tryParseAsPromote { Instant.parse(it) },
-
-        Date::class to ::stringToDate.asPromote(),
-        Duration::class to String::toDuration.asPromote(),
-
-        SizeInBytes::class to { value: String -> SizeInBytes.parse(value) }.asPromote()
-    ),
-    Char::class to listOf(
-        String::class to { value: Char -> "$value" }.asPromote()
-    ),
-    Byte::class to listOf(
-        Short::class to Byte::toShort.asPromote(),
-        Int::class to Byte::toInt.asPromote(),
-        Long::class to Byte::toLong.asPromote(),
-        Float::class to Byte::toFloat.asPromote(),
-        Double::class to Byte::toDouble.asPromote()
-    ),
-    Short::class to listOf(
-        Byte::class to ::shortToByte.asPromote(),
-        Int::class to Short::toInt.asPromote(),
-        Long::class to Short::toLong.asPromote(),
-        Float::class to Short::toFloat.asPromote(),
-        Double::class to Short::toDouble.asPromote()
-    ),
-    Int::class to listOf(
-        Short::class to ::intToShort.asPromote(),
-        Long::class to Int::toLong.asPromote(),
-        Float::class to Int::toFloat.asPromote(),
-        Double::class to Int::toDouble.asPromote()
-    ),
-    Long::class to listOf(
-        Int::class to ::longToInt.asPromote(),
-        Float::class to Long::toFloat.asPromote(),
-        Double::class to Long::toDouble.asPromote(),
-        BigInteger::class to { value: Long -> BigInteger.valueOf(value) }.asPromote()
-    ),
-    Float::class to listOf(
-        Double::class to Float::toDouble.asPromote()
-    ),
-    Double::class to listOf(
-        Float::class to Double::toFloat.asPromote(),
-        BigDecimal::class to { value: Double -> BigDecimal.valueOf(value) }.asPromote()
+private val promoteMap: MutableMap<KClass<*>, List<Pair<KClass<*>, PromoteFunc<*>>>> =
+    mutableMapOf(
+        String::class to
+            listOf(
+                Boolean::class to ::stringToBoolean.asPromote(),
+                Char::class to ::stringToChar.asPromote(),
+                Byte::class to tryParseAsPromote { value: String -> value.toByte() },
+                Short::class to tryParseAsPromote { value: String -> value.toShort() },
+                Int::class to tryParseAsPromote { value: String -> value.toInt() },
+                Long::class to tryParseAsPromote { value: String -> value.toLong() },
+                Float::class to tryParseAsPromote { value: String -> value.toFloat() },
+                Double::class to tryParseAsPromote { value: String -> value.toDouble() },
+                BigInteger::class to tryParseAsPromote { value: String -> value.toBigInteger() },
+                BigDecimal::class to tryParseAsPromote { value: String -> value.toBigDecimal() },
+                OffsetTime::class to tryParseAsPromote { OffsetTime.parse(it) },
+                OffsetDateTime::class to tryParseAsPromote { OffsetDateTime.parse(it) },
+                ZonedDateTime::class to tryParseAsPromote { ZonedDateTime.parse(it) },
+                LocalDate::class to tryParseAsPromote { LocalDate.parse(it) },
+                LocalTime::class to tryParseAsPromote { LocalTime.parse(it) },
+                LocalDateTime::class to tryParseAsPromote { LocalDateTime.parse(it) },
+                Year::class to tryParseAsPromote { Year.parse(it) },
+                YearMonth::class to tryParseAsPromote { YearMonth.parse(it) },
+                Instant::class to tryParseAsPromote { Instant.parse(it) },
+                Date::class to ::stringToDate.asPromote(),
+                Duration::class to String::toDuration.asPromote(),
+                SizeInBytes::class to { value: String -> SizeInBytes.parse(value) }.asPromote(),
+            ),
+        Char::class to
+            listOf(
+                String::class to { value: Char -> "$value" }.asPromote(),
+            ),
+        Byte::class to
+            listOf(
+                Short::class to Byte::toShort.asPromote(),
+                Int::class to Byte::toInt.asPromote(),
+                Long::class to Byte::toLong.asPromote(),
+                Float::class to Byte::toFloat.asPromote(),
+                Double::class to Byte::toDouble.asPromote(),
+            ),
+        Short::class to
+            listOf(
+                Byte::class to ::shortToByte.asPromote(),
+                Int::class to Short::toInt.asPromote(),
+                Long::class to Short::toLong.asPromote(),
+                Float::class to Short::toFloat.asPromote(),
+                Double::class to Short::toDouble.asPromote(),
+            ),
+        Int::class to
+            listOf(
+                Short::class to ::intToShort.asPromote(),
+                Long::class to Int::toLong.asPromote(),
+                Float::class to Int::toFloat.asPromote(),
+                Double::class to Int::toDouble.asPromote(),
+            ),
+        Long::class to
+            listOf(
+                Int::class to ::longToInt.asPromote(),
+                Float::class to Long::toFloat.asPromote(),
+                Double::class to Long::toDouble.asPromote(),
+                BigInteger::class to { value: Long -> BigInteger.valueOf(value) }.asPromote(),
+            ),
+        Float::class to
+            listOf(
+                Double::class to Float::toDouble.asPromote(),
+            ),
+        Double::class to
+            listOf(
+                Float::class to Double::toFloat.asPromote(),
+                BigDecimal::class to { value: Double -> BigDecimal.valueOf(value) }.asPromote(),
+            ),
     )
-)
 
-private val promoteMatchers: MutableList<Pair<(KClass<*>) -> Boolean, List<Pair<KClass<*>, PromoteFunc<*>>>>> = mutableListOf(
-    { type: KClass<*> -> type.starProjectedType == Array<Int>::class.starProjectedType } to listOf(
-        List::class to { value: Array<*> -> value.asList() }.asPromote(),
-        Set::class to { value: Array<*> -> value.asList().toSet() }.asPromote()
-    ),
-    { type: KClass<*> -> type.isSubclassOf(Set::class) } to listOf(
-        List::class to { value: Set<*> -> value.toList() }.asPromote()
+private val promoteMatchers: MutableList<Pair<(KClass<*>) -> Boolean, List<Pair<KClass<*>, PromoteFunc<*>>>>> =
+    mutableListOf(
+        { type: KClass<*> -> type.starProjectedType == Array<Int>::class.starProjectedType } to
+            listOf(
+                List::class to { value: Array<*> -> value.asList() }.asPromote(),
+                Set::class to { value: Array<*> -> value.asList().toSet() }.asPromote(),
+            ),
+        { type: KClass<*> -> type.isSubclassOf(Set::class) } to
+            listOf(
+                List::class to { value: Set<*> -> value.toList() }.asPromote(),
+            ),
     )
-)
 
 private fun walkPromoteMap(
     valueType: KClass<*>,
     targetType: KClass<*>,
     tasks: Queue<() -> PromoteFunc<*>?>,
     visitedTypes: MutableSet<KClass<*>>,
-    previousPromoteFunc: PromoteFunc<*>? = null
+    previousPromoteFunc: PromoteFunc<*>? = null,
 ): PromoteFunc<*>? {
     if (valueType in visitedTypes) {
         return null
@@ -865,11 +960,12 @@ private fun walkPromoteMap(
         return null
     }
     for ((promotedType, promoteFunc) in promotedTypes) {
-        val currentPromoteFunc: PromoteFunc<*> = if (previousPromoteFunc != null) {
-            { value, source -> promoteFunc(previousPromoteFunc(value, source)!!, source) }
-        } else {
-            promoteFunc
-        }
+        val currentPromoteFunc: PromoteFunc<*> =
+            if (previousPromoteFunc != null) {
+                { value, source -> promoteFunc(previousPromoteFunc(value, source)!!, source) }
+            } else {
+                promoteFunc
+            }
         if (promotedType == targetType) {
             return currentPromoteFunc
         } else {
@@ -881,7 +977,10 @@ private fun walkPromoteMap(
     return null
 }
 
-private fun getPromoteFunc(valueType: KClass<*>, targetType: KClass<*>): PromoteFunc<*>? {
+private fun getPromoteFunc(
+    valueType: KClass<*>,
+    targetType: KClass<*>,
+): PromoteFunc<*>? {
     val tasks = ArrayDeque<() -> PromoteFunc<*>?>()
     tasks.offer {
         walkPromoteMap(valueType, targetType, tasks, mutableSetOf())
@@ -895,7 +994,10 @@ private fun getPromoteFunc(valueType: KClass<*>, targetType: KClass<*>): Promote
     return null
 }
 
-private fun <T : Any> TreeNode.castOrNull(source: Source, clazz: Class<T>): T? {
+private fun <T : Any> TreeNode.castOrNull(
+    source: Source,
+    clazz: Class<T>,
+): T? {
     if (this is ValueNode) {
         if (clazz.kotlin.javaObjectType.isInstance(value)) {
             @Suppress("UNCHECKED_CAST")
@@ -917,7 +1019,11 @@ private fun <T : Any> TreeNode.castOrNull(source: Source, clazz: Class<T>): T? {
 private val promotedFromStringTypes = promoteMap.getValue(String::class).map { it.first }
 private val promotedFromStringMap = promoteMap.getValue(String::class).toMap()
 
-private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMapper): Any {
+private fun TreeNode.toValue(
+    source: Source,
+    type: JavaType,
+    mapper: ObjectMapper,
+): Any {
     if (this is ValueNode &&
         type == TypeFactory.defaultInstance().constructType(value::class.java)
     ) {
@@ -934,7 +1040,7 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                 } catch (cause: InvocationTargetException) {
                     throw ParseException(
                         "enum type $clazz has no constant with name $name",
-                        cause
+                        cause,
                     )
                 }
             } else {
@@ -945,7 +1051,7 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                     try {
                         return mapper.readValue<Any>(
                             TreeTraversingParser(withoutPlaceHolder().toJsonNode(source), mapper),
-                            type
+                            type,
                         )
                     } catch (cause: JsonProcessingException) {
                         throw ObjectMappingException("${this.toHierarchical()} in ${source.description}", clazz, cause)
@@ -953,11 +1059,14 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                 }
             }
         }
+
         is ArrayType -> {
             val clazz = type.contentType.rawClass
             val list = toListValue(source, type.contentType, mapper)
             if (!clazz.isPrimitive) {
-                val array = java.lang.reflect.Array.newInstance(clazz, list.size) as Array<*>
+                val array =
+                    java.lang.reflect.Array
+                        .newInstance(clazz, list.size) as Array<*>
                 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
                 return (list as java.util.Collection<*>).toArray(array)
             } else {
@@ -975,6 +1084,7 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                 }
             }
         }
+
         is CollectionLikeType -> {
             if (MutableCollection::class.java.isAssignableFrom(type.rawClass)) {
                 @Suppress("UNCHECKED_CAST")
@@ -985,6 +1095,7 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                 throw UnsupportedTypeException(source, type.rawClass)
             }
         }
+
         is MapLikeType -> {
             if (MutableMap::class.java.isAssignableFrom(type.rawClass)) {
                 when {
@@ -994,10 +1105,11 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                             putAll(
                                 this@toValue.toMap(source).mapValues { (_, value) ->
                                     value.toValue(source, type.contentType, mapper)
-                                }
+                                },
                             )
                         }
                     }
+
                     type.keyType.rawClass.kotlin in promotedFromStringTypes -> {
                         val promoteFunc = promotedFromStringMap.getValue(type.keyType.rawClass.kotlin)
                         @Suppress("UNCHECKED_CAST")
@@ -1005,10 +1117,11 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                             putAll(
                                 this@toValue.toMap(source).map { (key, value) ->
                                     promoteFunc(key, source)!! to value.toValue(source, type.contentType, mapper)
-                                }
+                                },
                             )
                         }
                     }
+
                     else -> {
                         throw UnsupportedMapKeyException(type.keyType.rawClass)
                     }
@@ -1017,34 +1130,44 @@ private fun TreeNode.toValue(source: Source, type: JavaType, mapper: ObjectMappe
                 throw UnsupportedTypeException(source, type.rawClass)
             }
         }
-        else -> throw UnsupportedTypeException(source, type.rawClass)
+
+        else -> {
+            throw UnsupportedTypeException(source, type.rawClass)
+        }
     }
 }
 
-private fun TreeNode.toListValue(source: Source, type: JavaType, mapper: ObjectMapper): List<*> {
-    return when (this) {
+private fun TreeNode.toListValue(
+    source: Source,
+    type: JavaType,
+    mapper: ObjectMapper,
+): List<*> =
+    when (this) {
         is ListNode -> list.map { it.toValue(source, type, mapper) }
         else -> throw WrongTypeException("$this in ${source.description}", this::class.java.simpleName, List::class.java.simpleName)
     }
-}
 
-private fun TreeNode.toMap(source: Source): Map<String, TreeNode> {
-    return when (this) {
+private fun TreeNode.toMap(source: Source): Map<String, TreeNode> =
+    when (this) {
         is MapNode -> children
         else -> throw WrongTypeException("$this in ${source.description}", this::class.java.simpleName, Map::class.java.simpleName)
     }
-}
 
-private fun TreeNode.toJsonNode(source: Source): JsonNode {
-    return when (this) {
-        is NullNode -> JacksonNullNode.instance
-        is ListStringNode ->
+private fun TreeNode.toJsonNode(source: Source): JsonNode =
+    when (this) {
+        is NullNode -> {
+            JacksonNullNode.instance
+        }
+
+        is ListStringNode -> {
             ArrayNode(
                 JsonNodeFactory.instance,
                 list.map {
                     it.toJsonNode(source)
-                }
+                },
             )
+        }
+
         is ValueNode -> {
             when (value) {
                 is Boolean -> BooleanNode.valueOf(value as Boolean)
@@ -1073,22 +1196,29 @@ private fun TreeNode.toJsonNode(source: Source): JsonNode {
                 else -> throw ParseException("fail to cast source ${source.description} to JSON node")
             }
         }
-        is ListNode ->
+
+        is ListNode -> {
             ArrayNode(
                 JsonNodeFactory.instance,
                 list.map {
                     it.toJsonNode(source)
-                }
+                },
             )
-        is MapNode -> ObjectNode(
-            JsonNodeFactory.instance,
-            children.mapValues { (_, value) ->
-                value.toJsonNode(source)
-            }
-        )
-        else -> throw ParseException("fail to cast source ${source.description} to JSON node")
+        }
+
+        is MapNode -> {
+            ObjectNode(
+                JsonNodeFactory.instance,
+                children.mapValues { (_, value) ->
+                    value.toJsonNode(source)
+                },
+            )
+        }
+
+        else -> {
+            throw ParseException("fail to cast source ${source.description} to JSON node")
+        }
     }
-}
 
 private fun implOf(clazz: Class<*>): Class<*> =
     when (clazz) {
@@ -1104,44 +1234,70 @@ fun Any.asTree(): TreeNode = asTree("")
 
 fun Any.asTree(comment: String = ""): TreeNode =
     when (this) {
-        is TreeNode -> this
-        is Source -> this.tree
-        is List<*> ->
+        is TreeNode -> {
+            this
+        }
+
+        is Source -> {
+            this.tree
+        }
+
+        is List<*> -> {
             @Suppress("UNCHECKED_CAST")
             ListSourceNode((this as List<Any>).map { it.asTree() })
+        }
+
         is Map<*, *> -> {
             when {
-                this.size == 0 -> ContainerNode(mutableMapOf())
+                this.size == 0 -> {
+                    ContainerNode(mutableMapOf())
+                }
+
                 this.iterator().next().key is String -> {
                     @Suppress("UNCHECKED_CAST")
                     ContainerNode(
-                        (this as Map<String, Any>).mapValues { (_, value) ->
-                            value.asTree()
-                        }.toMutableMap()
+                        (this as Map<String, Any>)
+                            .mapValues { (_, value) ->
+                                value.asTree()
+                            }.toMutableMap(),
                     )
                 }
-                this.iterator().next().key!!::class in listOf(
-                    Char::class,
-                    Byte::class,
-                    Short::class,
-                    Int::class,
-                    Long::class,
-                    BigInteger::class
-                ) -> {
+
+                this.iterator().next().key!!::class in
+                    listOf(
+                        Char::class,
+                        Byte::class,
+                        Short::class,
+                        Int::class,
+                        Long::class,
+                        BigInteger::class,
+                    )
+                -> {
                     @Suppress("UNCHECKED_CAST")
                     ContainerNode(
-                        (this as Map<Any, Any>).map { (key, value) ->
-                            key.toString() to value.asTree()
-                        }.toMap().toMutableMap()
+                        (this as Map<Any, Any>)
+                            .map { (key, value) ->
+                                key.toString() to value.asTree()
+                            }.toMap()
+                            .toMutableMap(),
                     )
                 }
-                else -> ValueSourceNode(this, comments = comment)
+
+                else -> {
+                    ValueSourceNode(this, comments = comment)
+                }
             }
         }
-        else -> ValueSourceNode(this, comments = comment)
+
+        else -> {
+            ValueSourceNode(this, comments = comment)
+        }
     }
 
-fun Any.asSource(type: String = "", info: SourceInfo = SourceInfo()): Source =
+fun Any.asSource(
+    type: String = "",
+    info: SourceInfo = SourceInfo(),
+): Source =
     when (this) {
         is Source -> this
         is TreeNode -> Source(info.with("type" to type), this)

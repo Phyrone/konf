@@ -28,17 +28,16 @@ import com.uchuhimo.konf.source.asTree
 open class KVSource(
     val map: Map<String, Any>,
     type: String = "",
-    info: SourceInfo = SourceInfo()
+    info: SourceInfo = SourceInfo(),
 ) : ValueSource(map, type.notEmptyOr("KV"), info) {
     override val tree: TreeNode = map.kvToTree()
 }
 
-fun Map<String, Any>.kvToTree(): TreeNode {
-    return ContainerNode(mutableMapOf()).apply {
+fun Map<String, Any>.kvToTree(): TreeNode =
+    ContainerNode(mutableMapOf()).apply {
         this@kvToTree.forEach { (path, value) ->
             set(path, value.asTree())
         }
     }
-}
 
 fun Map<String, Any>.asKVSource() = KVSource(this)

@@ -27,12 +27,16 @@ import java.io.OutputStream
 /**
  * Writer for JSON source.
  */
-class JsonWriter(val config: Config) : Writer {
-    private val objectWriter: ObjectWriter = config.mapper.writer(
-        DefaultPrettyPrinter().withObjectIndenter(
-            DefaultIndenter().withLinefeed(System.lineSeparator())
+class JsonWriter(
+    val config: Config,
+) : Writer {
+    private val objectWriter: ObjectWriter =
+        config.mapper.writer(
+            DefaultPrettyPrinter().withObjectIndenter(
+                DefaultIndenter().withLinefeed(System.lineSeparator()),
+            ),
         )
-    )
+
     override fun toWriter(writer: java.io.Writer) {
         objectWriter.writeValue(writer, config.toHierarchicalMap())
     }

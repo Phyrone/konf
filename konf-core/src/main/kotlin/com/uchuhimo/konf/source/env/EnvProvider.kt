@@ -37,21 +37,24 @@ object EnvProvider {
     fun env(nested: Boolean = true): Source = envMap(System.getenv(), nested)
 
     @JvmOverloads
-    fun envMap(map: Map<String, String>, nested: Boolean = true): Source {
-        return FlatSource(
-            map.mapKeys { (key, _) ->
-                if (nested) key.replace('_', '.') else key
-            }.filter { (key, _) ->
-                key.matches(validEnv)
-            }.toSortedMap(),
+    fun envMap(
+        map: Map<String, String>,
+        nested: Boolean = true,
+    ): Source =
+        FlatSource(
+            map
+                .mapKeys { (key, _) ->
+                    if (nested) key.replace('_', '.') else key
+                }.filter { (key, _) ->
+                    key.matches(validEnv)
+                }.toSortedMap(),
             type = "system-environment",
-            allowConflict = true
+            allowConflict = true,
         ).enabled(
-            Feature.LOAD_KEYS_CASE_INSENSITIVELY
+            Feature.LOAD_KEYS_CASE_INSENSITIVELY,
         ).disabled(
-            Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED
+            Feature.SUBSTITUTE_SOURCE_BEFORE_LOADED,
         )
-    }
 
     @JavaApi
     @JvmStatic

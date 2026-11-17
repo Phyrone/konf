@@ -36,18 +36,25 @@ object GitProviderSpec : SubjectSpek<Provider>({
     given("a provider") {
         on("create source from git repository") {
             tempDirectory().let { dir ->
-                Git.init().apply {
-                    setDirectory(dir)
-                }.call().use { git ->
-                    Paths.get(dir.path, "test").toFile().writeText("type = git")
-                    git.add().apply {
-                        addFilepattern("test")
+                Git
+                    .init()
+                    .apply {
+                        setDirectory(dir)
                     }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "init commit"
-                    }.call()
-                }
+                    .use { git ->
+                        Paths.get(dir.path, "test").toFile().writeText("type = git")
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("test")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "init commit"
+                            }.call()
+                    }
                 val repo = dir.toURI()
                 val source = subject.git(repo.toString(), "test")
                 it("should create from the specified git repository") {
@@ -62,27 +69,37 @@ object GitProviderSpec : SubjectSpek<Provider>({
         }
         on("create source from invalid git repository") {
             tempDirectory().let { dir ->
-                Git.init().apply {
-                    setDirectory(dir)
-                }.call().use { git ->
-                    Paths.get(dir.path, "test").toFile().writeText("type = git")
-                    git.add().apply {
-                        addFilepattern("test")
+                Git
+                    .init()
+                    .apply {
+                        setDirectory(dir)
                     }.call()
-                    git.commit().apply {
-                        setSign(false)
-                        message = "init commit"
-                    }.call()
-                }
+                    .use { git ->
+                        Paths.get(dir.path, "test").toFile().writeText("type = git")
+                        git
+                            .add()
+                            .apply {
+                                addFilepattern("test")
+                            }.call()
+                        git
+                            .commit()
+                            .apply {
+                                setSign(false)
+                                message = "init commit"
+                            }.call()
+                    }
                 it("should throw InvalidRemoteRepoException") {
                     assertThat(
                         { subject.git(tempDirectory().path, "test", dir = dir.path) },
-                        throws<InvalidRemoteRepoException>()
+                        throws<InvalidRemoteRepoException>(),
                     )
                 }
                 it("should return an empty source if optional") {
                     assertTrue {
-                        subject.git(tempDirectory().path, "test", dir = dir.path, optional = true).tree.children.isEmpty()
+                        subject
+                            .git(tempDirectory().path, "test", dir = dir.path, optional = true)
+                            .tree.children
+                            .isEmpty()
                     }
                 }
             }

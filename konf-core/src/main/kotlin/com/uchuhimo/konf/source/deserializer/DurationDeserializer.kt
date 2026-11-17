@@ -25,8 +25,8 @@ import java.time.format.DateTimeParseException
  * Deserializer for [Duration].
  */
 object DurationDeserializer : JSR310Deserializer<Duration>(Duration::class.java) {
-    override fun parse(string: String): Duration {
-        return try {
+    override fun parse(string: String): Duration =
+        try {
             Duration.parse(string)
         } catch (exception: DateTimeParseException) {
             try {
@@ -35,5 +35,4 @@ object DurationDeserializer : JSR310Deserializer<Duration>(Duration::class.java)
                 throw exception
             }
         }
-    }
 }

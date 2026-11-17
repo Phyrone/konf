@@ -41,13 +41,9 @@ object XmlProvider : Provider {
         }
     }
 
-    override fun reader(reader: Reader): Source {
-        return FlatSource(SAXReader().read(reader).toMap(), type = "XML")
-    }
+    override fun reader(reader: Reader): Source = FlatSource(SAXReader().read(reader).toMap(), type = "XML")
 
-    override fun inputStream(inputStream: InputStream): Source {
-        return FlatSource(SAXReader().read(inputStream).toMap(), type = "XML")
-    }
+    override fun inputStream(inputStream: InputStream): Source = FlatSource(SAXReader().read(inputStream).toMap(), type = "XML")
 
     @JavaApi
     @JvmStatic

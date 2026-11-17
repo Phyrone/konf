@@ -1,7 +1,11 @@
+plugins {
+    id("konf.kotlin-library")
+}
+
 dependencies {
     api(project(":konf-core"))
-    implementation("org.graalvm.sdk", "graal-sdk", Versions.graal)
-    implementation("org.graalvm.js", "js", Versions.graal)
+    implementation(libs.graal.polyglot)
+    implementation(libs.graal.js)
 
     testImplementation(testFixtures(project(":konf-core")))
 }

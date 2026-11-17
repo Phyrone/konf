@@ -18,8 +18,11 @@ package com.uchuhimo.konf
 
 import java.io.File
 
-fun tempFileOf(content: String, prefix: String = "tmp", suffix: String = ".tmp"): File {
-    return tempFile(prefix, suffix).apply {
+fun tempFileOf(
+    content: String,
+    prefix: String = "tmp",
+    suffix: String = ".tmp",
+): File =
+    tempFile(prefix, suffix).apply {
         writeText(content)
     }
-}

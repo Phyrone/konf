@@ -33,7 +33,6 @@ class Buffer {
 @BenchmarkMode(AverageTime)
 @OutputTimeUnit(NANOSECONDS)
 class ConfigBenchmark {
-
     @State(Scope.Thread)
     class ConfigState {
         val config = Config { addSpec(Buffer) }
@@ -82,16 +81,25 @@ class ConfigBenchmark {
 @BenchmarkMode(AverageTime)
 @OutputTimeUnit(NANOSECONDS)
 class MultiLevelConfigBenchmark {
-
     @State(Scope.Thread)
     class ConfigState {
-        val config = Config { addSpec(Buffer) }.withLayer().withLayer().withLayer().withLayer()
+        val config =
+            Config { addSpec(Buffer) }
+                .withLayer()
+                .withLayer()
+                .withLayer()
+                .withLayer()
         val path = Buffer.qualify(Buffer.name)
     }
 
     @State(Scope.Benchmark)
     class MultiThreadConfigState {
-        val config = Config { addSpec(Buffer) }.withLayer().withLayer().withLayer().withLayer()
+        val config =
+            Config { addSpec(Buffer) }
+                .withLayer()
+                .withLayer()
+                .withLayer()
+                .withLayer()
         val path = Buffer.qualify(Buffer.name)
     }
 

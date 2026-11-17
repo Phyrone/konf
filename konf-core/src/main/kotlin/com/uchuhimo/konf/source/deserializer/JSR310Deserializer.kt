@@ -28,7 +28,9 @@ import java.time.format.DateTimeParseException
  *
  * @param T type of datetime value
  */
-abstract class JSR310Deserializer<T>(clazz: Class<T>) : StdDeserializer<T>(clazz) {
+abstract class JSR310Deserializer<T>(
+    clazz: Class<T>,
+) : StdDeserializer<T>(clazz) {
     /**
      * Parses from a string to datetime value.
      *
@@ -38,7 +40,10 @@ abstract class JSR310Deserializer<T>(clazz: Class<T>) : StdDeserializer<T>(clazz
      */
     abstract fun parse(string: String): T
 
-    final override fun deserialize(parser: JsonParser, context: DeserializationContext): T? {
+    final override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): T? {
         when (parser.currentTokenId()) {
             JsonTokenId.ID_STRING -> {
                 val string = parser.text.trim { it <= ' ' }
@@ -57,7 +62,7 @@ abstract class JSR310Deserializer<T>(clazz: Class<T>) : StdDeserializer<T>(clazz
         throw MismatchedInputException.from(
             parser,
             handledType(),
-            "Unexpected token (${parser.currentToken}), expected string for ${handledType().name} value"
+            "Unexpected token (${parser.currentToken}), expected string for ${handledType().name} value",
         )
     }
 }

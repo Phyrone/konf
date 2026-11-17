@@ -41,7 +41,7 @@ fun Provider.git(
     file: String,
     dir: String? = null,
     branch: String = Constants.HEAD,
-    optional: Boolean = false
+    optional: Boolean = false,
 ): Source {
     return (dir?.let(::File) ?: tempDirectory(prefix = "local_git_repo")).let { directory ->
         val extendContext: Source.() -> Unit = {
@@ -52,20 +52,30 @@ fun Provider.git(
         }
         try {
             if ((directory.list { _, name -> name == ".git" } ?: emptyArray()).isEmpty()) {
-                Git.cloneRepository().apply {
-                    setURI(repo)
-                    setDirectory(directory)
-                    setBranch(branch)
-                }.call().close()
+                Git
+                    .cloneRepository()
+                    .apply {
+                        setURI(repo)
+                        setDirectory(directory)
+                        setBranch(branch)
+                    }.call()
+                    .close()
             } else {
                 Git.open(directory).use { git ->
                     val uri = URIish(repo)
-                    val remoteName = git.remoteList().call().firstOrNull { it.urIs.contains(uri) }?.name
-                        ?: throw InvalidRemoteRepoException(repo, directory.path)
-                    git.pull().apply {
-                        remote = remoteName
-                        remoteBranchName = branch
-                    }.call()
+                    val remoteName =
+                        git
+                            .remoteList()
+                            .call()
+                            .firstOrNull { it.urIs.contains(uri) }
+                            ?.name
+                            ?: throw InvalidRemoteRepoException(repo, directory.path)
+                    git
+                        .pull()
+                        .apply {
+                            remote = remoteName
+                            remoteBranchName = branch
+                        }.call()
                 }
             }
         } catch (ex: Exception) {
@@ -77,7 +87,10 @@ fun Provider.git(
                         throw ex
                     }
                 }
-                else -> throw ex
+
+                else -> {
+                    throw ex
+                }
             }
         }
         file(Paths.get(directory.path, file).toFile(), optional).apply(extendContext)

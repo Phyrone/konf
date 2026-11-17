@@ -48,7 +48,7 @@ class Loader(
     /**
      * Source provider to provide source from various input format.
      */
-    val provider: Provider
+    val provider: Provider,
 ) {
     val optional = config.isEnabled(Feature.OPTIONAL_SOURCE_BY_DEFAULT)
 
@@ -58,8 +58,7 @@ class Loader(
      * @param reader specified reader for reading character streams
      * @return a child config containing values from specified reader
      */
-    fun reader(reader: Reader): Config =
-        config.withSource(provider.reader(reader))
+    fun reader(reader: Reader): Config = config.withSource(provider.reader(reader))
 
     /**
      * Returns a child config containing values from specified input stream.
@@ -67,8 +66,7 @@ class Loader(
      * @param inputStream specified input stream of bytes
      * @return a child config containing values from specified input stream
      */
-    fun inputStream(inputStream: InputStream): Config =
-        config.withSource(provider.inputStream(inputStream))
+    fun inputStream(inputStream: InputStream): Config = config.withSource(provider.inputStream(inputStream))
 
     /**
      * Returns a child config containing values from specified file.
@@ -77,8 +75,10 @@ class Loader(
      * @param optional whether the source is optional
      * @return a child config containing values from specified file
      */
-    fun file(file: File, optional: Boolean = this.optional): Config =
-        config.withSource(provider.file(file, optional))
+    fun file(
+        file: File,
+        optional: Boolean = this.optional,
+    ): Config = config.withSource(provider.file(file, optional))
 
     /**
      * Returns a child config containing values from specified file path.
@@ -87,8 +87,10 @@ class Loader(
      * @param optional whether the source is optional
      * @return a child config containing values from specified file path
      */
-    fun file(file: String, optional: Boolean = this.optional): Config =
-        config.withSource(provider.file(file, optional))
+    fun file(
+        file: String,
+        optional: Boolean = this.optional,
+    ): Config = config.withSource(provider.file(file, optional))
 
     private val File.digest: ByteArray
         get() {
@@ -115,71 +117,72 @@ class Loader(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
     ): Config {
         val absoluteFile = file.absoluteFile
         return provider.file(absoluteFile, optional).let { source ->
-            config.withLoadTrigger("watch ${source.description}") { newConfig, load ->
-                newConfig.lock {
-                    load(source)
-                }
-                onLoad?.invoke(newConfig, source)
-                val path = absoluteFile.toPath().parent
-                val isMac = "mac" in System.getProperty("os.name").toLowerCase()
-                val watcher = FileSystems.getDefault().newWatchService()
-                path.register(
-                    watcher,
-                    StandardWatchEventKinds.ENTRY_MODIFY,
-                    StandardWatchEventKinds.ENTRY_CREATE
-                )
-                var digest = absoluteFile.digest
-                GlobalScope.launch(context) {
-                    while (true) {
-                        delay(unit.toMillis(delayTime))
-                        if (isMac) {
-                            val newDigest = absoluteFile.digest
-                            if (!newDigest.contentEquals(digest)) {
-                                digest = newDigest
-                                val newSource = provider.file(file, optional)
-                                newConfig.lock {
-                                    newConfig.clear()
-                                    load(newSource)
-                                }
-                                onLoad?.invoke(newConfig, newSource)
-                            }
-                        } else {
-                            val key = watcher.poll()
-                            if (key != null) {
-                                for (event in key.pollEvents()) {
-                                    val kind = event.kind()
-                                    @Suppress("UNCHECKED_CAST")
-                                    event as WatchEvent<Path>
-                                    val filename = event.context()
-                                    if (filename.toString() == absoluteFile.name) {
-                                        if (kind == StandardWatchEventKinds.OVERFLOW) {
-                                            continue
-                                        } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY ||
-                                            kind == StandardWatchEventKinds.ENTRY_CREATE
-                                        ) {
-                                            val newSource = provider.file(file, optional)
-                                            newConfig.lock {
-                                                newConfig.clear()
-                                                load(newSource)
-                                            }
-                                            onLoad?.invoke(newConfig, newSource)
-                                        }
+            config
+                .withLoadTrigger("watch ${source.description}") { newConfig, load ->
+                    newConfig.lock {
+                        load(source)
+                    }
+                    onLoad?.invoke(newConfig, source)
+                    val path = absoluteFile.toPath().parent
+                    val isMac = "mac" in System.getProperty("os.name").lowercase()
+                    val watcher = FileSystems.getDefault().newWatchService()
+                    path.register(
+                        watcher,
+                        StandardWatchEventKinds.ENTRY_MODIFY,
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                    )
+                    var digest = absoluteFile.digest
+                    GlobalScope.launch(context) {
+                        while (true) {
+                            delay(unit.toMillis(delayTime))
+                            if (isMac) {
+                                val newDigest = absoluteFile.digest
+                                if (!newDigest.contentEquals(digest)) {
+                                    digest = newDigest
+                                    val newSource = provider.file(file, optional)
+                                    newConfig.lock {
+                                        newConfig.clear()
+                                        load(newSource)
                                     }
-                                    val valid = key.reset()
-                                    if (!valid) {
-                                        watcher.close()
-                                        throw InvalidWatchKeyException(source)
+                                    onLoad?.invoke(newConfig, newSource)
+                                }
+                            } else {
+                                val key = watcher.poll()
+                                if (key != null) {
+                                    for (event in key.pollEvents()) {
+                                        val kind = event.kind()
+                                        @Suppress("UNCHECKED_CAST")
+                                        event as WatchEvent<Path>
+                                        val filename = event.context()
+                                        if (filename.toString() == absoluteFile.name) {
+                                            if (kind == StandardWatchEventKinds.OVERFLOW) {
+                                                continue
+                                            } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY ||
+                                                kind == StandardWatchEventKinds.ENTRY_CREATE
+                                            ) {
+                                                val newSource = provider.file(file, optional)
+                                                newConfig.lock {
+                                                    newConfig.clear()
+                                                    load(newSource)
+                                                }
+                                                onLoad?.invoke(newConfig, newSource)
+                                            }
+                                        }
+                                        val valid = key.reset()
+                                        if (!valid) {
+                                            watcher.close()
+                                            throw InvalidWatchKeyException(source)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }.withLayer()
+                }.withLayer()
         }
     }
 
@@ -201,9 +204,8 @@ class Loader(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
-    ): Config =
-        watchFile(File(file), delayTime, unit, context, optional, onLoad)
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
+    ): Config = watchFile(File(file), delayTime, unit, context, optional, onLoad)
 
     /**
      * Returns a child config containing values from specified string.
@@ -211,8 +213,7 @@ class Loader(
      * @param content specified string
      * @return a child config containing values from specified string
      */
-    fun string(content: String): Config =
-        config.withSource(provider.string(content))
+    fun string(content: String): Config = config.withSource(provider.string(content))
 
     /**
      * Returns a child config containing values from specified byte array.
@@ -220,8 +221,7 @@ class Loader(
      * @param content specified byte array
      * @return a child config containing values from specified byte array
      */
-    fun bytes(content: ByteArray): Config =
-        config.withSource(provider.bytes(content))
+    fun bytes(content: ByteArray): Config = config.withSource(provider.bytes(content))
 
     /**
      * Returns a child config containing values from specified portion of byte array.
@@ -231,8 +231,11 @@ class Loader(
      * @param length the length of the portion of the array to read
      * @return a child config containing values from specified portion of byte array
      */
-    fun bytes(content: ByteArray, offset: Int, length: Int): Config =
-        config.withSource(provider.bytes(content, offset, length))
+    fun bytes(
+        content: ByteArray,
+        offset: Int,
+        length: Int,
+    ): Config = config.withSource(provider.bytes(content, offset, length))
 
     /**
      * Returns a child config containing values from specified url.
@@ -241,8 +244,10 @@ class Loader(
      * @param optional whether the source is optional
      * @return a child config containing values from specified url
      */
-    fun url(url: URL, optional: Boolean = this.optional): Config =
-        config.withSource(provider.url(url, optional))
+    fun url(
+        url: URL,
+        optional: Boolean = this.optional,
+    ): Config = config.withSource(provider.url(url, optional))
 
     /**
      * Returns a child config containing values from specified url string.
@@ -251,8 +256,10 @@ class Loader(
      * @param optional whether the source is optional
      * @return a child config containing values from specified url string
      */
-    fun url(url: String, optional: Boolean = this.optional): Config =
-        config.withSource(provider.url(url, optional))
+    fun url(
+        url: String,
+        optional: Boolean = this.optional,
+    ): Config = config.withSource(provider.url(url, optional))
 
     /**
      * Returns a child config containing values from specified url,
@@ -272,28 +279,28 @@ class Loader(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
-    ): Config {
-        return provider.url(url, optional).let { source ->
-            config.withLoadTrigger("watch ${source.description}") { newConfig, load ->
-                newConfig.lock {
-                    load(source)
-                }
-                onLoad?.invoke(newConfig, source)
-                GlobalScope.launch(context) {
-                    while (true) {
-                        delay(unit.toMillis(period))
-                        val newSource = provider.url(url, optional)
-                        newConfig.lock {
-                            newConfig.clear()
-                            load(newSource)
-                        }
-                        onLoad?.invoke(newConfig, newSource)
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
+    ): Config =
+        provider.url(url, optional).let { source ->
+            config
+                .withLoadTrigger("watch ${source.description}") { newConfig, load ->
+                    newConfig.lock {
+                        load(source)
                     }
-                }
-            }.withLayer()
+                    onLoad?.invoke(newConfig, source)
+                    GlobalScope.launch(context) {
+                        while (true) {
+                            delay(unit.toMillis(period))
+                            val newSource = provider.url(url, optional)
+                            newConfig.lock {
+                                newConfig.clear()
+                                load(newSource)
+                            }
+                            onLoad?.invoke(newConfig, newSource)
+                        }
+                    }
+                }.withLayer()
         }
-    }
 
     /**
      * Returns a child config containing values from specified url string,
@@ -313,9 +320,8 @@ class Loader(
         unit: TimeUnit = TimeUnit.SECONDS,
         context: CoroutineContext = Dispatchers.Default,
         optional: Boolean = this.optional,
-        onLoad: ((config: Config, source: Source) -> Unit)? = null
-    ): Config =
-        watchUrl(URL(url), period, unit, context, optional, onLoad)
+        onLoad: ((config: Config, source: Source) -> Unit)? = null,
+    ): Config = watchUrl(URL(url), period, unit, context, optional, onLoad)
 
     /**
      * Returns a child config containing values from specified resource.
@@ -324,6 +330,8 @@ class Loader(
      * @param optional whether the source is optional
      * @return a child config containing values from specified resource
      */
-    fun resource(resource: String, optional: Boolean = this.optional): Config =
-        config.withSource(provider.resource(resource, optional))
+    fun resource(
+        resource: String,
+        optional: Boolean = this.optional,
+    ): Config = config.withSource(provider.resource(resource, optional))
 }

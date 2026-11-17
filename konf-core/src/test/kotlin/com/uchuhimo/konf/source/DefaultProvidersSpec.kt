@@ -105,6 +105,7 @@ object DefaultProvidersSpec : SubjectSpek<DefaultProviders>({
     }
 })
 
-fun Source.toFlattenConfig(): Config = Config {
-    addSpec(FlattenDefaultLoadersConfig)
-}.withSource(this)
+fun Source.toFlattenConfig(): Config =
+    Config {
+        addSpec(FlattenDefaultLoadersConfig)
+    }.withSource(this)

@@ -33,9 +33,9 @@ object ListSourceNodeSpec : SubjectSpek<ListSourceNode>({
                 equalTo(
                     mutableMapOf<String, TreeNode>(
                         "0" to EmptyNode,
-                        "1" to EmptyNode
-                    )
-                )
+                        "1" to EmptyNode,
+                    ),
+                ),
             )
         }
     }
